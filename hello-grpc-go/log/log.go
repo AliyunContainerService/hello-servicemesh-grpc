@@ -1,14 +1,29 @@
-package main
+package log
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"runtime"
 	"strings"
 )
 
-func Infof(format string, args ...interface{}) {
+//dev info
+func DInfo(msg string) string {
+	id := uuid.New().String()
+	filename, line, funcname, funcname1, funcname2 := buildLogParams()
+	log.Infof("[%s] %s[%d]:%s<-%s<-%s: %s\n", id, filename, line, funcname, funcname1, funcname2, msg)
+	return id
+}
+
+//dev tracing info
+func TInfo(id, msg string) {
+	filename, line, funcname, funcname1, funcname2 := buildLogParams()
+	log.Infof("[%s] %s[%d]:%s<-%s<-%s: %s\n", id, filename, line, funcname, funcname1, funcname2, msg)
+}
+
+func DInfof(format string, args ...interface{}) {
 	filename, line, funcname, funcname1, funcname2 := buildLogParams()
 	log.Infof("%s[%d]:%s<-%s<-%s: %s\n", filename, line, funcname, funcname1, funcname2, fmt.Sprintf(format, args...))
 }
@@ -40,20 +55,3 @@ func buildLogParams0(skip int) (string, int, string, string, string) {
 	}
 	return filename, line, funcName, funcName1, funcname2
 }
-
-/*
-func main() {
-	test()
-}
-
-func test() {
-	test2()
-}
-
-func test2() {
-	test3()
-}
-func test3() {
-	Infof("hello %s", "eric")
-}
-*/
