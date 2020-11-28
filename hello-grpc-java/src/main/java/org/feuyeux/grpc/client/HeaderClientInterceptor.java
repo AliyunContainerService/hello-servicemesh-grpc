@@ -15,9 +15,9 @@ public class HeaderClientInterceptor implements ClientInterceptor {
             public void start(Listener<RespT> responseListener, Metadata headers) {
                 for (int i = 0; i < tracingKeys.size(); i++) {
                     String metadata = contextKeys.get(i).get();
-                    Metadata.Key<String> key = tracingKeys.get(i);
-                    log.info("Context to metadata {}:{}", key, metadata);
                     if (metadata != null) {
+                        Metadata.Key<String> key = tracingKeys.get(i);
+                        log.info("Context to metadata {}:{}", key, metadata);
                         headers.put(key, metadata);
                     }
                 }

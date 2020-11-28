@@ -18,9 +18,9 @@ public class HeaderServerInterceptor implements ServerInterceptor {
         for (int i = 0; i < tracingKeys.size(); i++) {
             Metadata.Key<String> tracingKey = tracingKeys.get(i);
             String metadata = requestHeaders.get(tracingKey);
-            Context.Key<String> key = contextKeys.get(i);
-            log.info("Metadata to context {}:{}", key, metadata);
             if (metadata != null) {
+                Context.Key<String> key = contextKeys.get(i);
+                log.info("Metadata to context {}:{}", key, metadata);
                 current = current.withValue(key, metadata);
             }
         }

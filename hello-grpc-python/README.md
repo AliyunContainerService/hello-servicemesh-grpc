@@ -15,5 +15,5 @@ sh start_server.sh
 ```
 
 ```sh
-sh start_server.sh
+sh start_client.sh
 ```

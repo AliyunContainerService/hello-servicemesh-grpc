@@ -1,29 +1,29 @@
 // GENERATED CODE -- DO NOT EDIT!
 
-'use strict'
-var grpc = require('grpc')
-var landing_pb = require('./landing_pb.js')
+'use strict';
+var grpc = require('grpc');
+var landing_pb = require('./landing_pb.js');
 
 function serialize_org_feuyeux_grpc_TalkRequest(arg) {
   if (!(arg instanceof landing_pb.TalkRequest)) {
-    throw new Error('Expected argument of type org.feuyeux.grpc.TalkRequest')
+    throw new Error('Expected argument of type org.feuyeux.grpc.TalkRequest');
   }
-  return Buffer.from(arg.serializeBinary())
+  return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_org_feuyeux_grpc_TalkRequest(buffer_arg) {
-  return landing_pb.TalkRequest.deserializeBinary(new Uint8Array(buffer_arg))
+  return landing_pb.TalkRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_org_feuyeux_grpc_TalkResponse(arg) {
   if (!(arg instanceof landing_pb.TalkResponse)) {
-    throw new Error('Expected argument of type org.feuyeux.grpc.TalkResponse')
+    throw new Error('Expected argument of type org.feuyeux.grpc.TalkResponse');
   }
-  return Buffer.from(arg.serializeBinary())
+  return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_org_feuyeux_grpc_TalkResponse(buffer_arg) {
-  return landing_pb.TalkResponse.deserializeBinary(new Uint8Array(buffer_arg))
+  return landing_pb.TalkResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 
@@ -76,6 +76,6 @@ talkBidirectional: {
     responseSerialize: serialize_org_feuyeux_grpc_TalkResponse,
     responseDeserialize: deserialize_org_feuyeux_grpc_TalkResponse,
   },
-}
+};
 
-exports.LandingServiceClient = grpc.makeGenericClientConstructor(LandingServiceService)
+exports.LandingServiceClient = grpc.makeGenericClientConstructor(LandingServiceService);
