@@ -1,0 +1,21 @@
+[package]
+name = "hello-grpc-rust"
+version = "0.1.0"
+authors = ["feuyeux <feuyeux@gmail.com>"]
+edition = "2018"
+
+[[bin]]
+name = "proto-server"
+path = "src/server.rs"
+
+[[bin]]
+name = "proto-client"
+path = "src/client.rs"
+
+[dependencies]
+tonic = "0.3"
+prost = "0.6"
+tokio = { version = "0.2", features = ["macros"] }
+
+[build-dependencies]
+tonic-build = "0.3"
