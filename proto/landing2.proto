@@ -5,19 +5,34 @@ option java_multiple_files = true;
 option java_package = "org.feuyeux.grpc.proto";
 option java_outer_classname = "Landing";
 option go_package = "common/pb";
+import "google/api/annotations.proto";
 
 service LandingService {
   //Unary RPC
   rpc talk (TalkRequest) returns (TalkResponse) {
+    option(google.api.http) = {
+      get: "/v1/talk/{data}/{meta}"
+    };
   }
   //Server streaming RPC
   rpc talkOneAnswerMore (TalkRequest) returns (stream TalkResponse) {
+    option(google.api.http) = {
+      get: "/v1/talk1n/{data}/{meta}"
+    };
   }
   //Client streaming RPC with random & sleep
   rpc talkMoreAnswerOne (stream TalkRequest) returns (TalkResponse) {
+    option(google.api.http) = {
+      post: "/v1/talkn1"
+      body: "*"
+    };
   }
   //Bidirectional streaming RPC
   rpc talkBidirectional (stream TalkRequest) returns (stream TalkResponse) {
+    option(google.api.http) = {
+      post: "/v1/talknn"
+      body: "*"
+    };
   }
 }
 
