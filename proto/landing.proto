@@ -8,16 +8,16 @@ option go_package = "common/pb";
 
 service LandingService {
   //Unary RPC
-  rpc talk (TalkRequest) returns (TalkResponse) {
+  rpc Talk (TalkRequest) returns (TalkResponse) {
   }
   //Server streaming RPC
-  rpc talkOneAnswerMore (TalkRequest) returns (stream TalkResponse) {
+  rpc TalkOneAnswerMore (TalkRequest) returns (stream TalkResponse) {
   }
   //Client streaming RPC with random & sleep
-  rpc talkMoreAnswerOne (stream TalkRequest) returns (TalkResponse) {
+  rpc TalkMoreAnswerOne (stream TalkRequest) returns (TalkResponse) {
   }
   //Bidirectional streaming RPC
-  rpc talkBidirectional (stream TalkRequest) returns (stream TalkResponse) {
+  rpc TalkBidirectional (stream TalkRequest) returns (stream TalkResponse) {
   }
 }
 

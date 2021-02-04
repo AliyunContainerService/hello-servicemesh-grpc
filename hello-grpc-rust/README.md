@@ -7,7 +7,8 @@ cargo build
 ```
 
 ```sh
-$ find . -name "*.rs"                                                                                                                                                             2 ↵
+$ find . -name "*.rs"
+
 ./target/debug/build/hello-grpc-rust-b1aedb8eb000afe4/out/org.feuyeux.grpc.rs
 ./target/debug/build/anyhow-db0336bb83000618/out/probe.rs
 ./build.rs
