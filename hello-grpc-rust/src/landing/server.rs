@@ -1,15 +1,21 @@
-use tonic::{transport::Server, Request, Response, Status};
+use chrono::prelude::*;
+use futures::{Stream, StreamExt};
 use landing::landing_service_server::{LandingService, LandingServiceServer};
-use landing::{TalkRequest, TalkResponse, ResultType, TalkResult};
-use futures::Stream;
+use landing::{ResultType, TalkRequest, TalkResponse, TalkResult};
+use std::collections::HashMap;
 use std::pin::Pin;
 use tokio::sync::mpsc;
-use std::collections::HashMap;
+use tonic::{transport::Server, Request, Response, Status, Streaming};
 use uuid::Uuid;
-use chrono::prelude::*;
-use rand::Rng;
 
-static hellos: Vec<&str> = vec!["Hello", "Bonjour", "Hola", "こんにちは", "Ciao", "안녕하세요"];
+static HELLOS: [&'static str; 6] = [
+    "Hello",
+    "Bonjour",
+    "Hola",
+    "こんにちは",
+    "Ciao",
+    "안녕하세요",
+];
 
 pub mod landing {
     tonic::include_proto!("org.feuyeux.grpc");
@@ -20,27 +26,36 @@ pub struct ProtoServer {}
 
 #[tonic::async_trait]
 impl LandingService for ProtoServer {
-    type TalkOneAnswerMoreStream = Pin<Box<dyn Stream<Item=Result<TalkResponse, Status>> + Send + Sync + 'static>>;
-    type TalkBidirectionalStream = Pin<Box<dyn Stream<Item=Result<TalkResponse, Status>> + Send + Sync + 'static>>;
-
-    async fn talk(
-        &self,
-        request: Request<TalkRequest>,
-    ) -> Result<Response<TalkResponse>, Status> {
-        let result = buildResult(request.get_ref().data);
+    async fn talk(&self, request: Request<TalkRequest>) -> Result<Response<TalkResponse>, Status> {
+        let talk_request: &TalkRequest = request.get_ref();
+        let data: &String = &talk_request.data;
+        let result = build_result(data.clone());
         let response = TalkResponse {
             status: 200,
             results: vec![result],
         };
         Ok(Response::new(response))
     }
-
+    type TalkOneAnswerMoreStream =
+        Pin<Box<dyn Stream<Item = Result<TalkResponse, Status>> + Send + Sync + 'static>>;
     async fn talk_one_answer_more(
         &self,
-        request: tonic::Request<TalkRequest>,
-    ) -> Result<tonic::Response<Self::TalkOneAnswerMoreStream>, tonic::Status> {
+        request: Request<TalkRequest>,
+    ) -> Result<Response<Self::TalkOneAnswerMoreStream>, Status> {
         let (tx, rx) = mpsc::channel(4);
-
+        tokio::spawn(async move {
+            let talk_request: &TalkRequest = request.get_ref();
+            let data: &String = &talk_request.data;
+            let datas = data.split(",");
+            for data in datas {
+                let result = build_result(data.to_string());
+                let response = TalkResponse {
+                    status: 200,
+                    results: vec![result],
+                };
+                tx.send(Ok(response)).await.unwrap();
+            }
+        });
         Ok(Response::new(Box::pin(
             tokio_stream::wrappers::ReceiverStream::new(rx),
         )))
@@ -48,28 +63,53 @@ impl LandingService for ProtoServer {
 
     async fn talk_more_answer_one(
         &self,
-        request: tonic::Request<tonic::Streaming<TalkRequest>>,
-    ) -> Result<tonic::Response<TalkResponse>, tonic::Status> {
-        Ok(Response::new(TalkResponse::default()))
+        request: Request<tonic::Streaming<TalkRequest>>,
+    ) -> Result<Response<TalkResponse>, Status> {
+        let mut stream = request.into_inner();
+        let mut rs = vec![];
+        while let Some(talk_request) = stream.next().await {
+            let talk_request = talk_request?;
+            let data: &String = &talk_request.data;
+            let result = build_result(data.to_string());
+            rs.push(result);
+        }
+        let response = TalkResponse {
+            status: 200,
+            results: rs,
+        };
+        Ok(Response::new(response))
     }
+
+    type TalkBidirectionalStream =
+        Pin<Box<dyn Stream<Item = Result<TalkResponse, Status>> + Send + Sync + 'static>>;
 
     async fn talk_bidirectional(
         &self,
-        request: tonic::Request<tonic::Streaming<TalkRequest>>,
-    ) -> Result<tonic::Response<Self::TalkBidirectionalStream>, tonic::Status> {
-        let output = async_stream::try_stream! {
+        request: Request<Streaming<TalkRequest>>,
+    ) -> Result<Response<Self::TalkBidirectionalStream>, Status> {
+        let mut stream = request.into_inner();
 
+        let output = async_stream::try_stream! {
+            while let Some(talk_request) = stream.next().await {
+                let talk_request = talk_request?;
+                let data: &String = &talk_request.data;
+                let result = build_result(data.to_string());
+                let response = TalkResponse {
+                    status: 200,
+                    results:  vec![result],
+                };
+                yield response;
+             }
         };
-        Ok(Response::new(Box::pin(output) as Self::TalkBidirectionalStream))
+        Ok(Response::new(
+            Box::pin(output) as Self::TalkBidirectionalStream
+        ))
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:50051".parse().unwrap();
-
-    println!("GreeterServer listening on {}", addr);
-
+    let addr = "[::1]:9996".parse().unwrap();
     Server::builder()
         .add_service(LandingServiceServer::new(ProtoServer {}))
         .serve(addr)
@@ -78,14 +118,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn buildResult(id: String) -> TalkResult {
+fn build_result(id: String) -> TalkResult {
     let mut map: HashMap<String, String> = HashMap::new();
-    let mut rng = rand::thread_rng();
-    let index = rng.gen_range(0..5);
+    let index = id.parse::<usize>().unwrap();
     let uuid = Uuid::new_v4();
     map.insert("id".to_string(), uuid.to_string());
     map.insert("idx".to_string(), id);
-    map.insert("data".to_string(), hellos[index].to_string());
+    map.insert("data".to_string(), HELLOS[index].to_string());
     map.insert("meta".to_string(), "RUST".to_string());
     let ok = ResultType::Ok as i32;
     let result = TalkResult {

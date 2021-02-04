@@ -14,7 +14,7 @@ struct Location {
 }
 
 #[allow(dead_code)]
-pub fn load() -> Vec<crate::routeguide::Feature> {
+pub fn load2() -> Vec<crate::routeguide::Feature> {
     let file = File::open("examples/data/route_guide_db.json").expect("failed to open data file");
 
     let decoded: Vec<Feature> =
