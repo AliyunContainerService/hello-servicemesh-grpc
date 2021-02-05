@@ -1,10 +1,9 @@
 package org.feuyeux.grpc.server;
 
-import io.grpc.*;
-import io.grpc.ForwardingServerCall.SimpleForwardingServerCall;
 import lombok.extern.slf4j.Slf4j;
 
-import static org.feuyeux.grpc.Constants.*;
+import static org.feuyeux.grpc.Constants.contextKeys;
+import static org.feuyeux.grpc.Constants.tracingKeys;
 
 @Slf4j
 public class HeaderServerInterceptor implements ServerInterceptor {
@@ -14,15 +13,19 @@ public class HeaderServerInterceptor implements ServerInterceptor {
             final Metadata requestHeaders,
             ServerCallHandler<ReqT, RespT> serverCallHandler) {
         Context current = Context.current();
-        log.info("Context:{}", current.toString());
         for (int i = 0; i < tracingKeys.size(); i++) {
             Metadata.Key<String> tracingKey = tracingKeys.get(i);
             String metadata = requestHeaders.get(tracingKey);
             if (metadata != null) {
                 Context.Key<String> key = contextKeys.get(i);
-                log.info("Metadata to context {}:{}", key, metadata);
+                log.info("T {}:{}", key, metadata);
                 current = current.withValue(key, metadata);
             }
+        }
+        for (String keyName : requestHeaders.keys()) {
+            Metadata.Key<String> key = Metadata.Key.of(keyName, Metadata.ASCII_STRING_MARSHALLER);
+            String metadata = requestHeaders.get(key);
+            log.info("H {}:{}", key, metadata);
         }
         return Contexts.interceptCall(current, call, requestHeaders, serverCallHandler);
     }
