@@ -1,10 +1,12 @@
 use futures::stream;
 use landing::landing_service_client::LandingServiceClient;
-use landing::TalkRequest;
+use landing::{TalkRequest, TalkResponse};
 use rand::Rng;
 use std::time::Duration;
 use tokio::time;
 use tonic::Request;
+use env_logger::Env;
+use log::info;
 
 pub mod landing {
     tonic::include_proto!("org.feuyeux.grpc");
@@ -12,18 +14,19 @@ pub mod landing {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = LandingServiceClient::connect("http://[::1]:9996").await?;
-
-    println!("Talk");
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).format_timestamp_millis().init();
+    let address = "http://[::1]:9996";
+    let mut client = LandingServiceClient::connect(address).await?;
+    info!("Talk");
     let response = client
         .talk(Request::new(TalkRequest {
             data: "0".to_string(),
             meta: "RUST".to_string(),
         }))
         .await?;
-    println!("RESPONSE = {:?}", response.get_ref());
+    print_response(response.get_ref());
 
-    println!("TalkOneAnswerMore");
+    info!("TalkOneAnswerMore");
     let mut stream = client
         .talk_one_answer_more(Request::new(TalkRequest {
             data: "0,1,2".to_string(),
@@ -33,10 +36,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .into_inner();
 
     while let Some(response) = stream.message().await? {
-        println!("RESPONSE = {:?}", response);
+        print_response(&response);
     }
 
-    println!("TalkMoreAnswerOne");
+    info!("TalkMoreAnswerOne");
     let mut requests = vec![];
     requests.push(TalkRequest {
         data: random_id(5),
@@ -53,11 +56,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let request = Request::new(stream::iter(requests));
     match client.talk_more_answer_one(request).await {
-        Ok(response) => println!("RESPONSE = {:?}", response.into_inner()),
-        Err(e) => println!("something went wrong: {:?}", e),
+        Ok(response) => print_response(&response.into_inner()),
+        Err(e) => info!("something went wrong: {:?}", e),
     }
 
-    println!("TalkBidirectional");
+    info!("TalkBidirectional");
 
     let mut interval = time::interval(Duration::from_secs(1));
     let mut times = 3;
@@ -73,9 +76,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let response = client.talk_bidirectional(Request::new(outbound)).await?;
     let mut inbound = response.into_inner();
     while let Some(resp) = inbound.message().await? {
-        println!("RESPONSE = {:?}", resp);
+        print_response(&resp);
     }
-    println!("DONE");
+    info!("DONE");
     Ok(())
 }
 
@@ -84,4 +87,28 @@ fn random_id(max: i32) -> String {
     let r = rng.gen_range(0..max);
     let s = format!("{}", r);
     s
+}
+
+fn print_response(response: &TalkResponse) {
+    for result in &response.results {
+        let map = &result.kv;
+        let (meta, id, idx, data): (String, String, String, String);
+        match map.get("meta") {
+            Some(_meta) => meta = _meta.to_string(),
+            None => meta = "".to_string(),
+        }
+        match map.get("id") {
+            Some(_id) => id = _id.to_string(),
+            None => id = "".to_string(),
+        }
+        match map.get("idx") {
+            Some(_idx) => idx = _idx.to_string(),
+            None => idx = "".to_string(),
+        }
+        match map.get("data") {
+            Some(_data) => data = _data.to_string(),
+            None => data = "".to_string(),
+        }
+        info!("[{:?}] {:?} [{:?} {:?} {:?},{:?}:{:?}]", response.status, result.id, meta, result.r#type, id, idx, data);
+    }
 }

@@ -7,6 +7,8 @@ use std::pin::Pin;
 use tokio::sync::mpsc;
 use tonic::{transport::Server, Request, Response, Status, Streaming};
 use uuid::Uuid;
+use env_logger::Env;
+use log::info;
 
 static HELLOS: [&'static str; 6] = [
     "Hello",
@@ -29,6 +31,8 @@ impl LandingService for ProtoServer {
     async fn talk(&self, request: Request<TalkRequest>) -> Result<Response<TalkResponse>, Status> {
         let talk_request: &TalkRequest = request.get_ref();
         let data: &String = &talk_request.data;
+        let meta: &String = &talk_request.meta;
+        info!("TALK REQUEST: data={:?},meta={:?}", data, meta);
         let result = build_result(data.clone());
         let response = TalkResponse {
             status: 200,
@@ -36,16 +40,17 @@ impl LandingService for ProtoServer {
         };
         Ok(Response::new(response))
     }
+
     type TalkOneAnswerMoreStream =
-        Pin<Box<dyn Stream<Item = Result<TalkResponse, Status>> + Send + Sync + 'static>>;
-    async fn talk_one_answer_more(
-        &self,
-        request: Request<TalkRequest>,
-    ) -> Result<Response<Self::TalkOneAnswerMoreStream>, Status> {
+    Pin<Box<dyn Stream<Item=Result<TalkResponse, Status>> + Send + Sync + 'static>>;
+
+    async fn talk_one_answer_more(&self, request: Request<TalkRequest>) -> Result<Response<Self::TalkOneAnswerMoreStream>, Status> {
         let (tx, rx) = mpsc::channel(4);
         tokio::spawn(async move {
             let talk_request: &TalkRequest = request.get_ref();
             let data: &String = &talk_request.data;
+            let meta: &String = &talk_request.meta;
+            info!("TalkOneAnswerMore REQUEST: data={:?},meta={:?}", data, meta);
             let datas = data.split(",");
             for data in datas {
                 let result = build_result(data.to_string());
@@ -61,15 +66,14 @@ impl LandingService for ProtoServer {
         )))
     }
 
-    async fn talk_more_answer_one(
-        &self,
-        request: Request<tonic::Streaming<TalkRequest>>,
-    ) -> Result<Response<TalkResponse>, Status> {
+    async fn talk_more_answer_one(&self, request: Request<tonic::Streaming<TalkRequest>>) -> Result<Response<TalkResponse>, Status> {
         let mut stream = request.into_inner();
         let mut rs = vec![];
         while let Some(talk_request) = stream.next().await {
             let talk_request = talk_request?;
             let data: &String = &talk_request.data;
+            let meta: &String = &talk_request.meta;
+            info!("TalkMoreAnswerOne REQUEST: data={:?},meta={:?}", data, meta);
             let result = build_result(data.to_string());
             rs.push(result);
         }
@@ -81,18 +85,17 @@ impl LandingService for ProtoServer {
     }
 
     type TalkBidirectionalStream =
-        Pin<Box<dyn Stream<Item = Result<TalkResponse, Status>> + Send + Sync + 'static>>;
+    Pin<Box<dyn Stream<Item=Result<TalkResponse, Status>> + Send + Sync + 'static>>;
 
-    async fn talk_bidirectional(
-        &self,
-        request: Request<Streaming<TalkRequest>>,
-    ) -> Result<Response<Self::TalkBidirectionalStream>, Status> {
+    async fn talk_bidirectional(&self, request: Request<Streaming<TalkRequest>>) -> Result<Response<Self::TalkBidirectionalStream>, Status> {
         let mut stream = request.into_inner();
 
         let output = async_stream::try_stream! {
             while let Some(talk_request) = stream.next().await {
                 let talk_request = talk_request?;
                 let data: &String = &talk_request.data;
+                let meta: &String = &talk_request.meta;
+                info!("TalkBidirectional REQUEST: data={:?},meta={:?}", data, meta);
                 let result = build_result(data.to_string());
                 let response = TalkResponse {
                     status: 200,
@@ -109,12 +112,12 @@ impl LandingService for ProtoServer {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:9996".parse().unwrap();
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).format_timestamp_millis().init();
+    let address = "[::1]:9996".parse().unwrap();
     Server::builder()
         .add_service(LandingServiceServer::new(ProtoServer {}))
-        .serve(addr)
+        .serve(address)
         .await?;
-
     Ok(())
 }
 
