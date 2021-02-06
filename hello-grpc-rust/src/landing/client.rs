@@ -4,7 +4,7 @@ use landing::{TalkRequest, TalkResponse};
 use rand::Rng;
 use std::time::Duration;
 use tokio::time;
-use tonic::Request;
+use tonic::{Request};
 use env_logger::Env;
 use log::info;
 
@@ -18,20 +18,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let address = "http://[::1]:9996";
     let mut client = LandingServiceClient::connect(address).await?;
     info!("Talk");
-    let response = client
-        .talk(Request::new(TalkRequest {
-            data: "0".to_string(),
-            meta: "RUST".to_string(),
-        }))
-        .await?;
+
+    let message = TalkRequest {
+        data: "0".to_string(),
+        meta: "RUST".to_string(),
+    };
+    let mut request = Request::new(message);
+    request.metadata_mut().insert("k1", "v1".parse().unwrap());
+    request.metadata_mut().insert("k2", "v2".parse().unwrap());
+
+    let response = client.talk(request).await?;
     print_response(response.get_ref());
 
     info!("TalkOneAnswerMore");
+    let mut request = Request::new(TalkRequest {
+        data: "0,1,2".to_string(),
+        meta: "RUST".to_string(),
+    });
+    request.metadata_mut().insert("k1", "v1".parse().unwrap());
+    request.metadata_mut().insert("k2", "v2".parse().unwrap());
     let mut stream = client
-        .talk_one_answer_more(Request::new(TalkRequest {
-            data: "0,1,2".to_string(),
-            meta: "RUST".to_string(),
-        }))
+        .talk_one_answer_more(request)
         .await?
         .into_inner();
 
@@ -54,14 +61,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         meta: "RUST".to_string(),
     });
 
-    let request = Request::new(stream::iter(requests));
+    let mut request = Request::new(stream::iter(requests));
+    request.metadata_mut().insert("k1", "v1".parse().unwrap());
+    request.metadata_mut().insert("k2", "v2".parse().unwrap());
     match client.talk_more_answer_one(request).await {
         Ok(response) => print_response(&response.into_inner()),
         Err(e) => info!("something went wrong: {:?}", e),
     }
 
     info!("TalkBidirectional");
-
     let mut interval = time::interval(Duration::from_secs(1));
     let mut times = 3;
     let outbound = async_stream::stream! {
@@ -73,12 +81,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let response = client.talk_bidirectional(Request::new(outbound)).await?;
+    let mut request = Request::new(outbound);
+    request.metadata_mut().insert("k1", "v1".parse().unwrap());
+    request.metadata_mut().insert("k2", "v2".parse().unwrap());
+    let response = client.talk_bidirectional(request).await?;
     let mut inbound = response.into_inner();
     while let Some(resp) = inbound.message().await? {
         print_response(&resp);
     }
-    info!("DONE");
+    info!("Done");
     Ok(())
 }
 

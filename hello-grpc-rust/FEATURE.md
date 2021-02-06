@@ -1,6 +1,6 @@
 
 - [x] 4 MODELS
 - [x] LOG 
-- [ ] HEADERS
+- [x] HEADERS
 - [ ] PROPAGANDA TRACING HEADERS
 - [ ] DOCKER IMAGE

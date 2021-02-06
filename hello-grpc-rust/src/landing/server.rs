@@ -9,6 +9,7 @@ use tonic::{transport::Server, Request, Response, Status, Streaming};
 use uuid::Uuid;
 use env_logger::Env;
 use log::info;
+use tonic::metadata::{KeyAndValueRef, MetadataMap};
 
 static HELLOS: [&'static str; 6] = [
     "Hello",
@@ -33,6 +34,7 @@ impl LandingService for ProtoServer {
         let data: &String = &talk_request.data;
         let meta: &String = &talk_request.meta;
         info!("TALK REQUEST: data={:?},meta={:?}", data, meta);
+        print_metadata(request.metadata());
         let result = build_result(data.clone());
         let response = TalkResponse {
             status: 200,
@@ -51,6 +53,7 @@ impl LandingService for ProtoServer {
             let data: &String = &talk_request.data;
             let meta: &String = &talk_request.meta;
             info!("TalkOneAnswerMore REQUEST: data={:?},meta={:?}", data, meta);
+            print_metadata(request.metadata());
             let datas = data.split(",");
             for data in datas {
                 let result = build_result(data.to_string());
@@ -67,13 +70,15 @@ impl LandingService for ProtoServer {
     }
 
     async fn talk_more_answer_one(&self, request: Request<tonic::Streaming<TalkRequest>>) -> Result<Response<TalkResponse>, Status> {
+        info!("TalkMoreAnswerOne REQUEST: ");
+        print_metadata(request.metadata());
         let mut stream = request.into_inner();
         let mut rs = vec![];
         while let Some(talk_request) = stream.next().await {
             let talk_request = talk_request?;
             let data: &String = &talk_request.data;
             let meta: &String = &talk_request.meta;
-            info!("TalkMoreAnswerOne REQUEST: data={:?},meta={:?}", data, meta);
+            info!("data={:?},meta={:?}", data, meta);
             let result = build_result(data.to_string());
             rs.push(result);
         }
@@ -88,14 +93,15 @@ impl LandingService for ProtoServer {
     Pin<Box<dyn Stream<Item=Result<TalkResponse, Status>> + Send + Sync + 'static>>;
 
     async fn talk_bidirectional(&self, request: Request<Streaming<TalkRequest>>) -> Result<Response<Self::TalkBidirectionalStream>, Status> {
+        info!("TalkBidirectional REQUEST:");
+        print_metadata(request.metadata());
         let mut stream = request.into_inner();
-
         let output = async_stream::try_stream! {
             while let Some(talk_request) = stream.next().await {
                 let talk_request = talk_request?;
                 let data: &String = &talk_request.data;
                 let meta: &String = &talk_request.meta;
-                info!("TalkBidirectional REQUEST: data={:?},meta={:?}", data, meta);
+                info!("data={:?},meta={:?}", data, meta);
                 let result = build_result(data.to_string());
                 let response = TalkResponse {
                     status: 200,
@@ -109,6 +115,7 @@ impl LandingService for ProtoServer {
         ))
     }
 }
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -136,4 +143,13 @@ fn build_result(id: String) -> TalkResult {
         kv: map,
     };
     return result;
+}
+
+fn print_metadata(header: &MetadataMap) {
+    for kv in header.iter() {
+        match kv {
+            KeyAndValueRef::Ascii(ref k, ref v) => info!("H: {:?}: {:?}", k, v),
+            KeyAndValueRef::Binary(ref k, ref v) => info!("H: {:?}: {:?}", k, v),
+        }
+    }
 }
