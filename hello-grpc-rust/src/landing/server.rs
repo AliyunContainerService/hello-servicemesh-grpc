@@ -120,7 +120,8 @@ impl LandingService for ProtoServer {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).format_timestamp_millis().init();
-    let address = "[::1]:9996".parse().unwrap();
+    let address = "0.0.0.0:9996".parse().unwrap();
+    info!("ProtoServer listening on {}", address);
     Server::builder()
         .add_service(LandingServiceServer::new(ProtoServer {}))
         .serve(address)

@@ -12,13 +12,6 @@ path = "src/landing/server.rs"
 name = "proto-client"
 path = "src/landing/client.rs"
 
-[[bin]]
-name = "route-server"
-path = "src/routeguide/server.rs"
-[[bin]]
-name = "route-client"
-path = "src/routeguide/client.rs"
-
 [dependencies]
 tonic = "0.4"
 prost = "0.7"

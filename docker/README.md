@@ -59,3 +59,14 @@ registry.cn-beijing.aliyuncs.com/asm_repo/grpc_server_python:1.0.0
 docker run --rm --name grpc_client_python -e GRPC_SERVER=$(ipconfig getifaddr en0) \
 registry.cn-beijing.aliyuncs.com/asm_repo/grpc_client_python:1.0.0 sh /grpc-client/start_client.sh
 ```
+
+#### rust
+```sh
+docker run --rm --name grpc_server_rust -p 9996:9996 \
+registry.cn-beijing.aliyuncs.com/asm_repo/grpc_server_rust:1.0.0
+```
+
+```sh
+docker run --rm --name grpc_client_rust -e GRPC_SERVER=$(ipconfig getifaddr en0) \
+registry.cn-beijing.aliyuncs.com/asm_repo/grpc_client_rust:1.0.0 ./grpc-client
+```

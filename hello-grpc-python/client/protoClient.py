@@ -23,7 +23,7 @@ def talk(stub):
     logger.info("Talk data:%s,meta:%s", request.data, request.meta)
     metadata = (("k1", "v1"),
                 ("k2", "v2"),)
-    response = stub.talk(request=request, metadata=metadata)
+    response = stub.Talk(request=request, metadata=metadata)
     print_response("Talk", response)
 
 
@@ -32,7 +32,7 @@ def talk_one_answer_more(stub):
     logger.info("TalkOneAnswerMore data:%s,meta:%s", request.data, request.meta)
     metadata = (("k1", "v1"),
                 ("k2", "v2"),)
-    responses = stub.talkOneAnswerMore(request=request, metadata=metadata)
+    responses = stub.TalkOneAnswerMore(request=request, metadata=metadata)
     for response in responses:
         print_response("TalkOneAnswerMore", response)
 
@@ -41,7 +41,7 @@ def talk_more_answer_one(stub):
     request_iterator = generate_request("TalkMoreAnswerOne")
     metadata = (("k1", "v1"),
                 ("k2", "v2"),)
-    response_summary = stub.talkMoreAnswerOne(request_iterator=request_iterator, metadata=metadata)
+    response_summary = stub.TalkMoreAnswerOne(request_iterator=request_iterator, metadata=metadata)
     print_response("TalkMoreAnswerOne", response_summary)
 
 
@@ -49,7 +49,7 @@ def talk_bidirectional(stub):
     request_iterator = generate_request("TalkBidirectional")
     metadata = (("k1", "v1"),
                 ("k2", "v2"),)
-    responses = stub.talkBidirectional(request_iterator=request_iterator, metadata=metadata)
+    responses = stub.TalkBidirectional(request_iterator=request_iterator, metadata=metadata)
     for response in responses:
         print_response("TalkBidirectional", response)
 

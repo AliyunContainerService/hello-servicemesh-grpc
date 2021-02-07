@@ -58,7 +58,7 @@ class LandingServiceServer(landing_pb2_grpc.LandingServiceServicer):
     def __init__(self, next_one):
         self.next_one = next_one
 
-    def talk(self, request, context):
+    def Talk(self, request, context):
         logger.info("TALK REQUEST: data=%s,meta=%s", request.data, request.meta)
         if self.next_one:
             headers = propaganda_headers("TALK", context)
@@ -73,7 +73,7 @@ class LandingServiceServer(landing_pb2_grpc.LandingServiceServicer):
             response.results.append(result)
             return response
 
-    def talkOneAnswerMore(self, request, context):
+    def TalkOneAnswerMore(self, request, context):
         logger.info("TalkOneAnswerMore REQUEST: data=%s,meta=%s", request.data, request.meta)
         if self.next_one:
             headers = propaganda_headers("TalkOneAnswerMore", context)
@@ -89,7 +89,7 @@ class LandingServiceServer(landing_pb2_grpc.LandingServiceServicer):
                 response.results.append(result)
                 yield response
 
-    def talkMoreAnswerOne(self, request_iterator, context):
+    def TalkMoreAnswerOne(self, request_iterator, context):
         if self.next_one:
             headers = propaganda_headers("TalkMoreAnswerOne", context)
             return self.next_one.talkMoreAnswerOne(request_iterator=request_iterator, metadata=headers)
@@ -101,7 +101,7 @@ class LandingServiceServer(landing_pb2_grpc.LandingServiceServicer):
                 response.results.append(build_result(request.data))
             return response
 
-    def talkBidirectional(self, request_iterator, context):
+    def TalkBidirectional(self, request_iterator, context):
         if self.next_one:
             headers = propaganda_headers("TalkBidirectional", context)
             responses = self.next_one.talkBidirectional(request_iterator=request_iterator, metadata=headers)

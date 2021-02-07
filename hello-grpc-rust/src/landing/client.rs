@@ -7,6 +7,7 @@ use tokio::time;
 use tonic::{Request};
 use env_logger::Env;
 use log::info;
+use std::env;
 
 pub mod landing {
     tonic::include_proto!("org.feuyeux.grpc");
@@ -15,7 +16,10 @@ pub mod landing {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).format_timestamp_millis().init();
-    let address = "http://[::1]:9996";
+
+    let address = format!("http://{}:{}", grpc_server(), "9996");
+    info!("Access to:{}", address);
+
     let mut client = LandingServiceClient::connect(address).await?;
     info!("Talk");
 
@@ -91,6 +95,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     info!("Done");
     Ok(())
+}
+
+fn grpc_server() -> String {
+    match env::var("GRPC_SERVER") {
+        Ok(val) => return val,
+        Err(_e) => "localhost".to_string(),
+    }
 }
 
 fn random_id(max: i32) -> String {

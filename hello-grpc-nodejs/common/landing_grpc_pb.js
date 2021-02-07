@@ -30,7 +30,7 @@ function deserialize_org_feuyeux_grpc_TalkResponse(buffer_arg) {
 var LandingServiceService = exports.LandingServiceService = {
   // Unary RPC
 talk: {
-    path: '/org.feuyeux.grpc.LandingService/talk',
+    path: '/org.feuyeux.grpc.LandingService/Talk',
     requestStream: false,
     responseStream: false,
     requestType: landing_pb.TalkRequest,
@@ -42,7 +42,7 @@ talk: {
   },
   // Server streaming RPC
 talkOneAnswerMore: {
-    path: '/org.feuyeux.grpc.LandingService/talkOneAnswerMore',
+    path: '/org.feuyeux.grpc.LandingService/TalkOneAnswerMore',
     requestStream: false,
     responseStream: true,
     requestType: landing_pb.TalkRequest,
@@ -54,7 +54,7 @@ talkOneAnswerMore: {
   },
   // Client streaming RPC with random & sleep
 talkMoreAnswerOne: {
-    path: '/org.feuyeux.grpc.LandingService/talkMoreAnswerOne',
+    path: '/org.feuyeux.grpc.LandingService/TalkMoreAnswerOne',
     requestStream: true,
     responseStream: false,
     requestType: landing_pb.TalkRequest,
@@ -66,7 +66,7 @@ talkMoreAnswerOne: {
   },
   // Bidirectional streaming RPC
 talkBidirectional: {
-    path: '/org.feuyeux.grpc.LandingService/talkBidirectional',
+    path: '/org.feuyeux.grpc.LandingService/TalkBidirectional',
     requestStream: true,
     responseStream: true,
     requestType: landing_pb.TalkRequest,
