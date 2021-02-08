@@ -14,6 +14,7 @@ client_java_pod=$(k get pod -l app=grpc-client-java -n grpc-best -o jsonpath={.i
 client_go_pod=$(k get pod -l app=grpc-client-go -n grpc-best -o jsonpath={.items..metadata.name})
 client_node_pod=$(k get pod -l app=grpc-client-node -n grpc-best -o jsonpath={.items..metadata.name})
 client_python_pod=$(k get pod -l app=grpc-client-python -n grpc-best -o jsonpath={.items..metadata.name})
+client_rust_pod=$(k get pod -l app=grpc-client-rust -n grpc-best -o jsonpath={.items..metadata.name})
 
 echo "Test Java Client"
 k exec "$client_java_pod" -c grpc-client-java -n grpc-best -- java -jar /grpc-client.jar
@@ -26,6 +27,9 @@ k exec "$client_node_pod" -c grpc-client-node -n grpc-best -- node proto_client.
 echo
 echo "Test Python Client"
 k exec "$client_python_pod" -c grpc-client-python -n grpc-best -- sh /grpc-client/start_client.sh
+echo
+echo "Test Rust Client"
+k exec "$client_rust_pod" -c grpc-client-rust -n grpc-best -- ./grpc-client
 echo
 
 echo "Test in loop"

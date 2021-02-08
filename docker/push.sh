@@ -14,3 +14,6 @@ docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_client_node:1.0.0
 # python
 docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_server_python:1.0.0
 docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_client_python:1.0.0
+# rust
+docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_server_rust:1.0.0
+docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_client_rust:1.0.0
