@@ -7,17 +7,17 @@ cd "$(
 echo "build grpc server java"
 cd ../hello-grpc-java
 mvn clean install -DskipTests -f server_pom
-cp target/hello-grpc-java.jar ../docker/
+cp target/hello-grpc-java-server.jar ../docker/
 cd ../docker
 docker build -f grpc-server-java.dockerfile -t registry.cn-beijing.aliyuncs.com/asm_repo/grpc_server_java:1.0.0 .
-rm -rf hello-grpc-java.jar
+rm -rf hello-grpc-java-server.jar
 echo
 
 echo "build grpc client java"
 cd ../hello-grpc-java
 mvn clean install -DskipTests -f client_pom
-cp target/hello-grpc-java.jar ../docker/
+cp target/hello-grpc-java-client.jar ../docker/
 cd ../docker
 docker build -f grpc-client-java.dockerfile -t registry.cn-beijing.aliyuncs.com/asm_repo/grpc_client_java:1.0.0 .
-rm -rf hello-grpc-java.jar
+rm -rf hello-grpc-java-client.jar
 echo

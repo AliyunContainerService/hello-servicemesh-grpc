@@ -3,7 +3,8 @@ package org.feuyeux.grpc.client;
 import io.grpc.*;
 import lombok.extern.slf4j.Slf4j;
 
-import static org.feuyeux.grpc.Constants.*;
+import static org.feuyeux.grpc.Constants.contextKeys;
+import static org.feuyeux.grpc.Constants.tracingKeys;
 
 @Slf4j
 public class HeaderClientInterceptor implements ClientInterceptor {
