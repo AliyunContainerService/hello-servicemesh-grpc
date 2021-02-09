@@ -5,13 +5,14 @@
 package main
 
 import (
+	"net"
+	"os"
+
 	"github.com/feuyeux/hello-grpc-go/common/pb"
 	"github.com/feuyeux/hello-grpc-go/server"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"net"
-	"os"
 )
 
 const (

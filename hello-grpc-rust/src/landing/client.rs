@@ -1,13 +1,15 @@
-use futures::stream;
-use landing::landing_service_client::LandingServiceClient;
-use landing::{TalkRequest, TalkResponse};
-use rand::Rng;
-use std::time::Duration;
-use tokio::time;
-use tonic::{Request};
-use env_logger::Env;
-use log::info;
 use std::env;
+use std::time::Duration;
+
+use env_logger::Env;
+use futures::stream;
+use log::info;
+use rand::Rng;
+use tokio::time;
+use tonic::Request;
+
+use landing::{TalkRequest, TalkResponse};
+use landing::landing_service_client::LandingServiceClient;
 
 pub mod landing {
     tonic::include_proto!("org.feuyeux.grpc");
@@ -17,7 +19,7 @@ pub mod landing {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).format_timestamp_millis().init();
 
-    let address = format!("http://{}:{}", grpc_server(), "9996");
+    let address = format!("http://{}:{}", grpc_server(), grpc_server_port());
     info!("Access to:{}", address);
 
     let mut client = LandingServiceClient::connect(address).await?;
@@ -99,8 +101,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn grpc_server() -> String {
     match env::var("GRPC_SERVER") {
-        Ok(val) => return val,
+        Ok(val) => val,
         Err(_e) => "localhost".to_string(),
+    }
+}
+
+fn grpc_server_port() -> String {
+    match env::var("GRPC_SERVER_PORT") {
+        Ok(val) => val,
+        Err(_e) => "9996".to_string(),
     }
 }
 

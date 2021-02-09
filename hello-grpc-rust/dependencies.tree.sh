@@ -1,2 +1,2 @@
 cargo clean
-cargo tree -d > tree
+cargo tree -d >tree

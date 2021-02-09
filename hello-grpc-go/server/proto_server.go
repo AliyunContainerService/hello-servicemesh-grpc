@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
-	"github.com/feuyeux/hello-grpc-go/common/pb"
-	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc/metadata"
 	"io"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/feuyeux/hello-grpc-go/common/pb"
+	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc/metadata"
 )
 
 var (

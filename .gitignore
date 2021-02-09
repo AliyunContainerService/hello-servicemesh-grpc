@@ -25,3 +25,4 @@ landing_pb*
 package-lock.json
 cargo.lock
 envoy/*.pb
+dependency-reduced-pom.xml

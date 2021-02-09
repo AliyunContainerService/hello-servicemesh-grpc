@@ -1,6 +1,5 @@
-
 - [x] 4 MODELS
-- [x] LOG 
+- [x] LOG
 - [x] HEADERS
 - [x] DOCKER IMAGE
 - [x] CROSS ACCESS

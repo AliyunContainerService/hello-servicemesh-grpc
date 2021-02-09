@@ -27,5 +27,4 @@ cargo run --bin proto-server
 cargo run --bin proto-client
 ```
 
-
 - https://github.com/hyperium/tonic

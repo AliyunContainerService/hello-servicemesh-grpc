@@ -2,11 +2,12 @@ package log
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 //dev info

@@ -1,16 +1,17 @@
 package main
 
 import (
-	"github.com/feuyeux/hello-grpc-go/common/pb"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"io"
 	"math/rand"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/feuyeux/hello-grpc-go/common/pb"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 func talk(client pb.LandingServiceClient, request *pb.TalkRequest) {
