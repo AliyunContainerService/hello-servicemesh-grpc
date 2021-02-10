@@ -8,16 +8,17 @@ use std::pin::Pin;
 use chrono::prelude::*;
 use env_logger::Env;
 use futures::{Stream, StreamExt};
-use log::info;
+use log::{error, info};
 use tokio::sync::mpsc;
 use tonic::{Request, Response, Status, Streaming, transport::Server};
 use tonic::metadata::{KeyAndValueRef, MetadataMap};
+use tonic::transport::Channel;
 use uuid::Uuid;
 
 use landing::{ResultType, TalkRequest, TalkResponse, TalkResult};
+use landing::landing_service_client::LandingServiceClient;
 use landing::landing_service_server::{LandingService, LandingServiceServer};
 
-// use landing::landing_service_client::LandingServiceClient;
 lazy_static! {
     static ref HELLOS: [&'static str; 6] = [
         "Hello",
@@ -41,23 +42,38 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(val) => val,
         Err(_e) => "9996".to_string()
     }).parse().unwrap();
-    info!("ProtoServer listening on {}", address);
 
     let backend = match env::var("GRPC_HELLO_BACKEND") {
         Ok(val) => val,
         Err(_e) => String::default()
     };
 
-    Server::builder()
-        .add_service(LandingServiceServer::new(ProtoServer { backend }))
-        .serve(address)
-        .await?;
-    Ok(())
+    if !backend.is_empty() {
+        let next_address = format!("http://{}:{}", backend, match env::var("GRPC_HELLO_BACKEND_PORT") {
+            Ok(val) => val,
+            Err(_e) => "8001".to_string()
+        });
+        info!("Next server is:{}", next_address);
+        let client = LandingServiceClient::connect(next_address).await?;
+        info!("ProtoServer listening on {}", address);
+        Server::builder()
+            .add_service(LandingServiceServer::new(ProtoServer { backend, client: Some(client) }))
+            .serve(address)
+            .await?;
+        Ok(())
+    } else {
+        info!("ProtoServer listening on {}", address);
+        Server::builder()
+            .add_service(LandingServiceServer::new(ProtoServer { backend, client: None }))
+            .serve(address)
+            .await?;
+        Ok(())
+    }
 }
 
-#[derive(Default)]
 pub struct ProtoServer {
-    backend: String
+    backend: String,
+    client: Option<LandingServiceClient<Channel>>,
 }
 
 #[tonic::async_trait]
@@ -73,13 +89,19 @@ impl LandingService for ProtoServer {
         print_metadata(request.metadata());
 
         if !self.backend.is_empty() {
-            let next_address = format!("http://{}:{}", self.backend, match env::var("GRPC_HELLO_BACKEND_PORT") {
-                Ok(val) => val,
-                Err(_e) => "9996".to_string()
-            });
-            info!("Next server is:{}", next_address);
-            //TODO
-            Ok(Response::new(TalkResponse::default()))
+            match &self.client {
+                Some(client) => {
+                    let mut c = client.clone();
+                    let response: &Response<TalkResponse> = &c.talk(request).await?;
+                    let talk_response = response.get_ref();
+                    info!("Talk={:?}", talk_response);
+                    Ok(Response::new(talk_response.clone()))
+                }
+                None => {
+                    error!("Cannot find next client");
+                    Ok(Response::new(TalkResponse::default()))
+                }
+            }
         } else {
             let result = build_result(data.clone());
             let response = TalkResponse {
@@ -99,7 +121,19 @@ impl LandingService for ProtoServer {
         -> Result<Response<Self::TalkOneAnswerMoreStream>, Status> {
         let (tx, rx) = mpsc::channel(4);
         if !self.backend.is_empty() {
-            //TODO
+            match &self.client {
+                Some(client) => {
+                    let mut c = client.clone();
+                    let stream = &mut c.talk_one_answer_more(request).await?.into_inner();
+                    while let Some(talk_response) = stream.message().await? {
+                        let talk_response = talk_response.clone();
+                        tx.send(Ok(talk_response)).await.unwrap();
+                    }
+                }
+                None => {
+                    error!("Cannot find next client");
+                }
+            }
         } else {
             tokio::spawn(async move {
                 let talk_request: &TalkRequest = request.get_ref();
