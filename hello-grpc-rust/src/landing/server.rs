@@ -8,6 +8,7 @@ use std::pin::Pin;
 use chrono::prelude::*;
 use env_logger::Env;
 use futures::{Stream, StreamExt};
+use futures::stream;
 use log::{error, info};
 use tokio::sync::mpsc;
 use tonic::{Request, Response, Status, Streaming, transport::Server};
@@ -162,13 +163,32 @@ impl LandingService for ProtoServer {
         -> Result<Response<TalkResponse>, Status> {
         info!("TalkMoreAnswerOne REQUEST: ");
         print_metadata(request.metadata());
+        let mut inbound_streaming = request.into_inner();
         if !self.backend.is_empty() {
-            //TODO
-            Ok(Response::new(TalkResponse::default()))
+            let mut requests = vec![];
+            let response = match &self.client {
+                Some(client) => {
+                    let mut c: LandingServiceClient<Channel> = client.clone();
+                    // -> TODO outbound
+                    while let Some(talk_request) = inbound_streaming.next().await {
+                        let talk_request = talk_request?;
+                        requests.push(talk_request);
+                    }
+                    let outbound = Request::new(stream::iter(requests));
+                    // <- TODO
+                    let talk_response = &c.talk_more_answer_one(outbound).await?.into_inner();
+                    talk_response.clone()
+                }
+                None => {
+                    error!("Cannot find next client");
+                    TalkResponse::default()
+                }
+            };
+
+            Ok(Response::new(response))
         } else {
-            let mut stream = request.into_inner();
             let mut rs = vec![];
-            while let Some(talk_request) = stream.next().await {
+            while let Some(talk_request) = inbound_streaming.next().await {
                 let talk_request = talk_request?;
                 let data: &String = &talk_request.data;
                 let meta: &String = &talk_request.meta;
@@ -193,16 +213,45 @@ impl LandingService for ProtoServer {
         -> Result<Response<Self::TalkBidirectionalStream>, Status> {
         info!("TalkBidirectional REQUEST:");
         print_metadata(request.metadata());
+        let mut stream = request.into_inner();
+
         if !self.backend.is_empty() {
-            //TODO
-            let output = async_stream::try_stream! {
-                yield TalkResponse::default()
-            };
-            Ok(Response::new(
-                Box::pin(output) as Self::TalkBidirectionalStream
-            ))
+            match &self.client {
+                Some(client) => {
+                    let mut c: LandingServiceClient<Channel> = client.clone();
+                    /*let outbound_streaming = async_stream::try_stream! {
+                         while let Some(talk_request) = stream.next().await {
+                            let talk_request = talk_request?;
+                            let inbound_streaming = async_stream::try_stream! {
+                                yield talk_request
+                            };
+                            let mut request = Request::new(inbound_streaming);
+                            let outbound = &mut c.talk_bidirectional(request).await?.into_inner();
+                            while let Some(talk_response) = outbound.message().await? {
+                                let talk_response = talk_response.clone();
+                                yield talk_response;
+                            }
+                        }
+                    };*/
+                    let outbound_streaming = async_stream::try_stream! {
+                        yield TalkResponse::default()
+                    };
+                    Ok(Response::new(
+                        Box::pin(outbound_streaming) as Self::TalkBidirectionalStream
+                    ))
+                }
+                None=>{
+                    error!("Cannot find next client");
+                    let inbound_streaming = async_stream::try_stream! {
+                        yield TalkResponse::default()
+                    };
+                    Ok(Response::new(
+                        Box::pin(inbound_streaming) as Self::TalkBidirectionalStream
+                    ))
+                }
+            }
+
         } else {
-            let mut stream = request.into_inner();
             let output = async_stream::try_stream! {
                 while let Some(talk_request) = stream.next().await {
                     let talk_request = talk_request?;
