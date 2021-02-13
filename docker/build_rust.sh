@@ -6,37 +6,8 @@ cd "$(
   pwd -P
 )/" || exit
 
-# Croess Platform Support
-# https://doc.rust-lang.org/nightly/rustc/platform-support.html
-# https://doc.rust-lang.org/edition-guide/rust-2018/platform-and-target-support/musl-support-for-fully-static-binaries.html
 echo "build grpc server rust"
 cd ../hello-grpc-rust
-# rustup target add x86_64-unknown-linux-musl
-# rustup show
-
-# Error: Your CLT does not support macOS 11.2.
-# sudo rm -rf /Library/Developer/CommandLineTools
-# sudo xcode-select --install
-# https://download.developer.apple.com/Developer_Tools/Command_Line_Tools_for_Xcode_12.5_beta/Command_Line_Tools_for_Xcode_12.5_beta.dmg
-
-# $ /usr/bin/xcodebuild -version ↵
-# Xcode 12.4
-# Build version 12D4e
-
-# $ pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
-# package-id: com.apple.pkg.CLTools_Executables
-# version: 12.5.0.0.1.1611946261
-# volume: /
-# location: /
-# install-time: 1612700387
-# groups: com.apple.FindSystemFiles.pkg-group
-
-# code .cargo/config
-# [target.x86_64-unknown-linux-musl]
-# linker = "x86_64-linux-musl-gcc"
-
-# brew install FiloSottile/musl-cross/musl-cross
-# ln -s /usr/local/bin/x86_64-linux-musl-gcc /usr/local/bin/musl-gcc
 
 CROSS_COMPILE=x86_64-linux-musl-gcc cargo build --release --bin proto-server --target=x86_64-unknown-linux-musl
 mv target/x86_64-unknown-linux-musl/release/proto-server ../docker/

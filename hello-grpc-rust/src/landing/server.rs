@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
-
 use std::collections::HashMap;
 use std::env;
 use std::pin::Pin;
@@ -9,10 +6,10 @@ use chrono::prelude::*;
 use env_logger::Env;
 use futures::{Stream, StreamExt};
 use futures::stream;
-use log::{error, info};
+use log::{debug, error, info};
 use tokio::sync::mpsc;
 use tonic::{Request, Response, Status, Streaming, transport::Server};
-use tonic::metadata::{KeyAndValueRef, MetadataMap};
+use tonic::metadata::{Ascii, KeyAndValueRef, MetadataKey, MetadataMap};
 use tonic::transport::Channel;
 use uuid::Uuid;
 
@@ -20,16 +17,25 @@ use landing::{ResultType, TalkRequest, TalkResponse, TalkResult};
 use landing::landing_service_client::LandingServiceClient;
 use landing::landing_service_server::{LandingService, LandingServiceServer};
 
-lazy_static! {
-    static ref HELLOS: [&'static str; 6] = [
-        "Hello",
-        "Bonjour",
-        "Hola",
-        "こんにちは",
-        "Ciao",
-        "안녕하세요",
-    ];
-}
+static HELLOS: [&'static str; 6] = [
+    "Hello",
+    "Bonjour",
+    "Hola",
+    "こんにちは",
+    "Ciao",
+    "안녕하세요",
+];
+
+static TRACING_KEYS: [&'static str; 7] = [
+    "x-request-id",
+    "x-b3-traceid",
+    "x-b3-spanid",
+    "x-b3-parentspanid",
+    "x-b3-sampled",
+    "x-b3-flags",
+    "x-ot-span-context",
+];
+
 pub mod landing {
     tonic::include_proto!("org.feuyeux.grpc");
 }
@@ -84,7 +90,7 @@ impl LandingService for ProtoServer {
 
     async fn talk(
         &self,
-        request: Request<TalkRequest>)
+        mut request: Request<TalkRequest>)
         -> Result<Response<TalkResponse>, Status> {
         let talk_request: &TalkRequest = request.get_ref();
         let data: &String = &talk_request.data;
@@ -95,6 +101,8 @@ impl LandingService for ProtoServer {
         if !self.backend.is_empty() {
             match &self.client {
                 Some(client) => {
+                    //TODO request and header is same...
+                    let _ = propaganda_headers(&mut request);
                     let mut c = client.clone();
                     let response: &Response<TalkResponse> = &c.talk(request).await?;
                     let talk_response = response.get_ref();
@@ -286,4 +294,22 @@ fn print_metadata(header: &MetadataMap) {
             KeyAndValueRef::Binary(ref k, ref v) => info!("H: {:?}: {:?}", k, v),
         }
     }
+}
+
+fn propaganda_headers(request: &mut Request<TalkRequest>) -> MetadataMap {
+    request.metadata_mut().clear();
+    let mut map = MetadataMap::new();
+    let headers = request.metadata_mut();
+    for key in &TRACING_KEYS {
+        let key: MetadataKey<Ascii> = MetadataKey::from_static(key);
+        match headers.get(&key) {
+            Some(v) => {
+                map.insert(&key, v.clone());
+            }
+            None => {
+                debug!("key doesn't exist in header");
+            }
+        }
+    }
+    map
 }
