@@ -79,6 +79,9 @@ pub struct ProtoServer {
 
 #[tonic::async_trait]
 impl LandingService for ProtoServer {
+    type TalkOneAnswerMoreStream = Pin<Box<dyn Stream<Item=Result<TalkResponse, Status>> + Send + Sync + 'static>>;
+    type TalkBidirectionalStream = Pin<Box<dyn Stream<Item=Result<TalkResponse, Status>> + Send + Sync + 'static>>;
+
     async fn talk(
         &self,
         request: Request<TalkRequest>)
@@ -112,10 +115,6 @@ impl LandingService for ProtoServer {
             Ok(Response::new(response))
         }
     }
-
-    type TalkOneAnswerMoreStream =
-    Pin<Box<dyn Stream<Item=Result<TalkResponse,
-        Status>> + Send + Sync + 'static>>;
 
     async fn talk_one_answer_more(
         &self, request: Request<TalkRequest>)
@@ -204,10 +203,6 @@ impl LandingService for ProtoServer {
         }
     }
 
-    type TalkBidirectionalStream =
-    Pin<Box<dyn Stream<Item=Result<TalkResponse,
-        Status>> + Send + Sync + 'static>>;
-
     async fn talk_bidirectional(
         &self, request: Request<Streaming<TalkRequest>>)
         -> Result<Response<Self::TalkBidirectionalStream>, Status> {
@@ -218,29 +213,24 @@ impl LandingService for ProtoServer {
         if !self.backend.is_empty() {
             match &self.client {
                 Some(client) => {
+                    let (tx, rx) = mpsc::channel(4);
                     let mut c: LandingServiceClient<Channel> = client.clone();
-                    /*let outbound_streaming = async_stream::try_stream! {
-                         while let Some(talk_request) = stream.next().await {
-                            let talk_request = talk_request?;
-                            let inbound_streaming = async_stream::try_stream! {
-                                yield talk_request
-                            };
-                            let mut request = Request::new(inbound_streaming);
-                            let outbound = &mut c.talk_bidirectional(request).await?.into_inner();
-                            while let Some(talk_response) = outbound.message().await? {
-                                let talk_response = talk_response.clone();
-                                yield talk_response;
-                            }
-                        }
-                    };*/
-                    let outbound_streaming = async_stream::try_stream! {
-                        yield TalkResponse::default()
-                    };
-                    Ok(Response::new(
-                        Box::pin(outbound_streaming) as Self::TalkBidirectionalStream
-                    ))
+                    let mut requests = vec![];
+                    while let Some(talk_request) = stream.next().await {
+                        let talk_request = talk_request?;
+                        requests.push(talk_request);
+                    }
+                    let outbound = Request::new(stream::iter(requests));
+                    let stream = &mut c.talk_bidirectional(outbound).await?.into_inner();
+                    while let Some(talk_response) = stream.message().await? {
+                        let talk_response = talk_response.clone();
+                        tx.send(Ok(talk_response)).await.unwrap();
+                    }
+                    Ok(Response::new(Box::pin(
+                        tokio_stream::wrappers::ReceiverStream::new(rx),
+                    )))
                 }
-                None=>{
+                None => {
                     error!("Cannot find next client");
                     let inbound_streaming = async_stream::try_stream! {
                         yield TalkResponse::default()
@@ -250,7 +240,6 @@ impl LandingService for ProtoServer {
                     ))
                 }
             }
-
         } else {
             let output = async_stream::try_stream! {
                 while let Some(talk_request) = stream.next().await {
