@@ -3,16 +3,36 @@ package main
 import (
 	"io"
 	"math/rand"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/feuyeux/hello-grpc-go/common/pb"
+	"github.com/feuyeux/hello-grpc-go/conn"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
+
+func main() {
+	conn, err := conn.Dial()
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewLandingServiceClient(conn)
+	log.Infof("Unary RPC")
+	talk(c, &pb.TalkRequest{Data: "0", Meta: "GOLANG"})
+	log.Infof("Server streaming RPC")
+	talkOneAnswerMore(c, &pb.TalkRequest{Data: "0,1,2", Meta: "GOLANG"})
+	log.Infof("Client streaming RPC")
+	requests := []*pb.TalkRequest{
+		{Data: randomId(5), Meta: "GOLANG"},
+		{Data: randomId(5), Meta: "GOLANG"},
+		{Data: randomId(5), Meta: "GOLANG"}}
+	talkMoreAnswerOne(c, requests)
+	log.Infof("Bidirectional streaming RPC")
+	talkBidirectional(c, requests)
+}
 
 func talk(client pb.LandingServiceClient, request *pb.TalkRequest) {
 	log.Infof("Request=%+v", request)
@@ -97,37 +117,6 @@ func talkBidirectional(client pb.LandingServiceClient, requests []*pb.TalkReques
 
 func randomId(max int) string {
 	return strconv.Itoa(rand.Intn(max))
-}
-
-func grpcServer() string {
-	server := os.Getenv("GRPC_SERVER")
-	if len(server) == 0 {
-		return "localhost"
-	} else {
-		return server
-	}
-}
-
-func main() {
-	address := grpcServer() + ":9996"
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := pb.NewLandingServiceClient(conn)
-	log.Infof("Unary RPC")
-	talk(c, &pb.TalkRequest{Data: "0", Meta: "GOLANG"})
-	log.Infof("Server streaming RPC")
-	talkOneAnswerMore(c, &pb.TalkRequest{Data: "0,1,2", Meta: "GOLANG"})
-	log.Infof("Client streaming RPC")
-	requests := []*pb.TalkRequest{
-		{Data: randomId(5), Meta: "GOLANG"},
-		{Data: randomId(5), Meta: "GOLANG"},
-		{Data: randomId(5), Meta: "GOLANG"}}
-	talkMoreAnswerOne(c, requests)
-	log.Infof("Bidirectional streaming RPC")
-	talkBidirectional(c, requests)
 }
 
 func printResponse(response *pb.TalkResponse) {

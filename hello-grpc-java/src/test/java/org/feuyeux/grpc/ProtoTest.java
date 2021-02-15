@@ -4,9 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.feuyeux.grpc.client.ProtoClient;
 import org.feuyeux.grpc.proto.TalkRequest;
 import org.feuyeux.grpc.proto.TalkResponse;
+import org.feuyeux.grpc.server.LandingServiceImpl;
 import org.feuyeux.grpc.server.ProtoServer;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -50,10 +53,14 @@ public class ProtoTest {
         }
     }
 
-    @Test
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+    @Test()
     public void testProto() throws InterruptedException, IOException {
-        ProtoServer protoServer = new ProtoServer(17002);
-        ProtoClient protoClient = new ProtoClient(getLocalIp(), 17002);
+        environmentVariables.set("GRPC_HELLO_SECURE", "Y");
+        ProtoServer protoServer = new ProtoServer(new LandingServiceImpl());
+        ProtoClient protoClient = new ProtoClient();
         TalkRequest talkRequest = TalkRequest.newBuilder()
                 .setMeta("id=" + System.nanoTime())
                 .setData("eric")

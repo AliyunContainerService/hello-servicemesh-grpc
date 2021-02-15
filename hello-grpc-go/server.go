@@ -5,51 +5,52 @@
 package main
 
 import (
+	"crypto/tls"
 	"net"
 	"os"
 
 	"github.com/feuyeux/hello-grpc-go/common/pb"
+	"github.com/feuyeux/hello-grpc-go/conn"
 	"github.com/feuyeux/hello-grpc-go/server"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 )
 
-const (
-	port = ":9996"
+var (
+	cert      = "/var/hello_grpc/server_certs/cert.pem"
+	certKey   = "/var/hello_grpc/server_certs/private.key"
+	certChain = "/var/hello_grpc/server_certs/full_chain.pem"
+	rootCert  = "/var/hello_grpc/server_certs/myssl_root.cer"
 )
 
 func main() {
-	backend := os.Getenv("GRPC_HELLO_BACKEND")
-	backPort := os.Getenv("GRPC_HELLO_BACKEND_PORT")
-	currentPort := os.Getenv("GRPC_HELLO_PORT")
-	var lis net.Listener
-	var err error
-
-	if len(currentPort) > 0 {
-		lis, err = net.Listen("tcp", ":"+currentPort)
-		if err != nil {
-			log.Fatalf("Failed to listen: %v", err)
-			return
-		}
-	} else {
-		lis, err = net.Listen("tcp", port)
-		if err != nil {
-			log.Fatalf("Failed to listen: %v", err)
-			return
-		}
+	lis, err := net.Listen("tcp", conn.Port())
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
+		return
 	}
-	s := grpc.NewServer()
+	var s *grpc.Server
 	var srv *server.ProtoServer
-	if len(backend) > 0 {
-		log.Infof("Start GRPC Server backend:%v", backend)
-		var address string
-		if len(backPort) > 0 {
-			address = backend + ":" + backPort
-		} else {
-			address = backend + port
+	if os.Getenv("GRPC_HELLO_SECURE") == "Y" {
+		cert, err := tls.LoadX509KeyPair(certChain, certKey)
+		if err != nil {
+			panic(err)
 		}
-		conn, err := grpc.Dial(address, grpc.WithInsecure())
+		s = grpc.NewServer(grpc.Creds(credentials.NewTLS(&tls.Config{
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			Certificates: []tls.Certificate{cert},
+			ClientCAs:    conn.GetCertPool(rootCert),
+		})))
+		log.Info("Start GRPC TLS Server")
+	} else {
+		s = grpc.NewServer()
+		log.Info("Start GRPC Server")
+	}
+
+	if conn.HasBackend() {
+		conn, err := conn.Dial()
 		if err != nil {
 			log.Fatalf("Did not connect: %v", err)
 		}
@@ -57,7 +58,6 @@ func main() {
 		c := pb.NewLandingServiceClient(conn)
 		srv = &server.ProtoServer{BackendClient: c}
 	} else {
-		log.Info("Start GRPC Server")
 		srv = &server.ProtoServer{}
 	}
 	pb.RegisterLandingServiceServer(s, srv)

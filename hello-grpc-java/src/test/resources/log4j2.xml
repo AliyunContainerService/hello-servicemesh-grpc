@@ -3,7 +3,7 @@
 
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT" follow="true">
-            <PatternLayout pattern="%style{%d{HH:mm:ss.SSS} [%t]}{black} %style{%c{1}}{blue} %highlight{%msg%n}"/>
+            <PatternLayout pattern="%style{%d{HH:mm:ss.SSS} [%t]}{red} %style{%c{1}}{blue} %highlight{%msg%n}"/>
         </Console>
     </Appenders>
 

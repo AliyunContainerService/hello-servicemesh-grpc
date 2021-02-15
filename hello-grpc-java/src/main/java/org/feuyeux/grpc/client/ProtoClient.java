@@ -1,13 +1,18 @@
 package org.feuyeux.grpc.client;
 
-import io.grpc.*;
+import io.grpc.Channel;
+import io.grpc.ClientInterceptor;
+import io.grpc.ClientInterceptors;
+import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.feuyeux.grpc.HelloUtils;
+import org.feuyeux.grpc.conn.Connection;
 import org.feuyeux.grpc.proto.LandingServiceGrpc;
 import org.feuyeux.grpc.proto.TalkRequest;
 import org.feuyeux.grpc.proto.TalkResponse;
 
+import javax.net.ssl.SSLException;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -18,17 +23,16 @@ public class ProtoClient {
     private final LandingServiceGrpc.LandingServiceBlockingStub blockingStub;
     private final LandingServiceGrpc.LandingServiceStub asyncStub;
 
-    public ProtoClient(String host, int port) {
-        channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
-        //channel = ManagedChannelBuilder.forAddress("39.97.228.93", 9999).usePlaintext().build();
+    public ProtoClient() throws SSLException {
+        channel = Connection.getChannel();
         ClientInterceptor interceptor = new HeaderClientInterceptor();
         Channel interceptChannel = ClientInterceptors.intercept(channel, interceptor);
         blockingStub = LandingServiceGrpc.newBlockingStub(interceptChannel);
         asyncStub = LandingServiceGrpc.newStub(interceptChannel);
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        ProtoClient protoClient = new ProtoClient(getGrcServer(), 9996);
+    public static void main(String[] args) throws InterruptedException, SSLException {
+        ProtoClient protoClient = new ProtoClient();
         try {
             log.info("Unary RPC");
             TalkRequest talkRequest = TalkRequest.newBuilder()
@@ -77,14 +81,6 @@ public class ProtoClient {
                 }
 
         );
-    }
-
-    private static String getGrcServer() {
-        String server = System.getenv("GRPC_SERVER");
-        if (server == null) {
-            return "localhost";
-        }
-        return server;
     }
 
     public void shutdown() throws InterruptedException {
