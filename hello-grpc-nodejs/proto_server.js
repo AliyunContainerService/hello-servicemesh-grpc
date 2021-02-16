@@ -2,6 +2,7 @@ let grpc = require('grpc')
 let uuid = require('uuid')
 let messages = require('./common/landing_pb')
 let services = require('./common/landing_grpc_pb')
+const fs = require('fs')
 
 let hellos = ["Hello", "Bonjour", "Hola", "こんにちは", "Ciao", "안녕하세요"]
 
@@ -14,6 +15,7 @@ let tracingKeys = [
     "x-b3-flags",
     "x-ot-span-context"
 ]
+//
 const {createLogger, format, transports} = require('winston')
 const {combine, timestamp, printf} = format
 const formatter = printf(({level, message, timestamp}) => {
@@ -27,7 +29,62 @@ const logger = createLogger({
     ),
     transports: [new transports.Console()],
 })
+//
 let next
+
+const cert = "/var/hello_grpc/server_certs/cert.pem"
+const certKey = "/var/hello_grpc/server_certs/private.key"
+const certChain = "/var/hello_grpc/server_certs/full_chain.pem"
+const rootCert = "/var/hello_grpc/server_certs/myssl_root.cer"
+
+
+/**
+ * Starts an RPC server that receives requests for the Greeter service at the
+ * sample server port
+ */
+function main() {
+    let backend = process.env.GRPC_HELLO_BACKEND
+    let backPort = process.env.GRPC_HELLO_BACKEND_PORT
+    let currentPort = process.env.GRPC_HELLO_PORT
+    let secure = process.env.GRPC_HELLO_SECURE
+
+    if (typeof backend !== 'undefined' && backend !== null) {
+        let address
+        if (typeof backPort !== 'undefined' && backPort !== null) {
+            address = backend + ":" + backPort
+        } else {
+            address = backend + ":9996"
+        }
+        console.log("Next is " + address)
+        next = new services.LandingServiceClient(address, grpc.credentials.createInsecure())
+    }
+
+    let server = new grpc.Server()
+    server.addService(services.LandingServiceService, {
+        talk: talk,
+        talkOneAnswerMore: talkOneAnswerMore,
+        talkMoreAnswerOne: talkMoreAnswerOne,
+        talkBidirectional: talkBidirectional
+    })
+    let address
+    if (typeof currentPort !== 'undefined' && currentPort !== null) {
+        address = '0.0.0.0:' + currentPort
+    } else {
+        address = '0.0.0.0:9996'
+    }
+    if (typeof secure !== 'undefined' && secure !== null) {
+        let credentials = grpc.ServerCredentials.createSsl(
+            fs.readFileSync(rootCert),
+            [{cert_chain: fs.readFileSync(certChain), private_key: fs.readFileSync(certKey)}],
+            true)
+        server.bind(address, credentials)
+        logger.info("Start GRPC TLS Server:" + address)
+    } else {
+        server.bind(address, grpc.ServerCredentials.createInsecure())
+        logger.info("Start GRPC Server:" + address)
+    }
+    server.start()
+}
 
 function talk(call, callback) {
     let request = call.request
@@ -104,7 +161,7 @@ function talkMoreAnswerOne(call, callback) {
 
 function talkBidirectional(call) {
     if (typeof next !== 'undefined' && next !== null) {
-        let metadata =  propagandaHeaders("TalkBidirectional", call)
+        let metadata = propagandaHeaders("TalkBidirectional", call)
         let nextCall = next.talkBidirectional()
         nextCall.on('data', function (response) {
             call.write(response)
@@ -149,44 +206,6 @@ function buildResult(id) {
     kv.set("data", hellos[index])
     kv.set("meta", "NODEJS")
     return result
-}
-
-/**
- * Starts an RPC server that receives requests for the Greeter service at the
- * sample server port
- */
-function main() {
-    let backend = process.env.GRPC_HELLO_BACKEND
-    let backPort = process.env.GRPC_HELLO_BACKEND_PORT
-    let currentPort = process.env.GRPC_HELLO_PORT
-
-    if (typeof backend !== 'undefined' && backend !== null) {
-        let address
-        if (typeof backPort !== 'undefined' && backPort !== null) {
-            address = backend + ":" + backPort
-        } else {
-            address = backend + ":9996"
-        }
-        console.log("Next is " + address)
-        next = new services.LandingServiceClient(address, grpc.credentials.createInsecure())
-    }
-
-    let server = new grpc.Server()
-    server.addService(services.LandingServiceService, {
-        talk: talk,
-        talkOneAnswerMore: talkOneAnswerMore,
-        talkMoreAnswerOne: talkMoreAnswerOne,
-        talkBidirectional: talkBidirectional
-    })
-    let port
-    if (typeof currentPort !== 'undefined' && currentPort !== null) {
-        port = '0.0.0.0:' + currentPort
-
-    } else {
-        port = '0.0.0.0:9996'
-    }
-    server.bind(port, grpc.ServerCredentials.createInsecure())
-    server.start()
 }
 
 function propagandaHeaders(methodName, call) {

@@ -7,6 +7,7 @@ import uuid
 import grpc
 from concurrent import futures
 
+from conn import connection
 from landing_pb2 import landing_pb2
 from landing_pb2 import landing_pb2_grpc
 
@@ -28,6 +29,10 @@ tracing_keys = [
     "x-b3-flags",
     "x-ot-span-context"
 ]
+cert = "/var/hello_grpc/server_certs/cert.pem"
+certKey = "/var/hello_grpc/server_certs/private.key"
+certChain = "/var/hello_grpc/server_certs/full_chain.pem"
+rootCert = "/var/hello_grpc/server_certs/myssl_root.cer"
 
 
 def build_result(data):
@@ -127,20 +132,38 @@ def serve():
         else:
             address = backend + ":9996"
         logger.info("BACKEND:" + address)
-        channel = grpc.insecure_channel(address)
+        channel = connection.build_channel(address)
+
         stub = landing_pb2_grpc.LandingServiceStub(channel)
+        # set next_one
         service_server = LandingServiceServer(stub)
     else:
         service_server = LandingServiceServer(None)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     landing_pb2_grpc.add_LandingServiceServicer_to_server(service_server, server)
     if current_port:
-        port = "[::]:" + current_port
+        address = "[::]:" + current_port
     else:
-        port = '[::]:9996'
-    server.add_insecure_port(port)
+        address = '[::]:9996'
+
+    secure = os.getenv("GRPC_HELLO_SECURE")
+
+    if secure == "Y":
+        # 以二进制格式打开一个文件用于只读
+        with open(certKey, 'rb') as f:
+            private_key = f.read()
+        with open(certChain, 'rb') as f:
+            certificate_chain = f.read()
+        with open(rootCert, 'rb') as f:
+            root_certificates = f.read()
+        server_credentials = grpc.ssl_server_credentials(((private_key, certificate_chain),), root_certificates, True)
+        server.add_secure_port(address, server_credentials)
+        logger.info("Start GRPC TLS Server:" + address)
+    else:
+        server.add_insecure_port(address)
+        logger.info("Start GRPC Server:" + address)
     server.start()
-    logger.info("Start GRPC Server:" + port)
+
     try:
         server.wait_for_termination()
     except KeyboardInterrupt:

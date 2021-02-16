@@ -4,8 +4,7 @@ import os
 import random
 import time
 
-import grpc
-
+from conn import connection
 from landing_pb2 import landing_pb2
 from landing_pb2 import landing_pb2_grpc
 
@@ -83,17 +82,16 @@ def print_response(method_name, response):
 
 def run():
     address = grpc_server() + ":9996"
-    # address ="39.97.228.93:9999"
-    with grpc.insecure_channel(address) as channel:
-        stub = landing_pb2_grpc.LandingServiceStub(channel)
-        logger.info("Unary RPC")
-        talk(stub)
-        logger.info("Server streaming RPC")
-        talk_one_answer_more(stub)
-        logger.info("Client streaming RPC")
-        talk_more_answer_one(stub)
-        logger.info("Bidirectional streaming RPC")
-        talk_bidirectional(stub)
+    channel = connection.build_channel(address)
+    stub = landing_pb2_grpc.LandingServiceStub(channel)
+    logger.info("Unary RPC")
+    talk(stub)
+    logger.info("Server streaming RPC")
+    talk_one_answer_more(stub)
+    logger.info("Client streaming RPC")
+    talk_more_answer_one(stub)
+    logger.info("Bidirectional streaming RPC")
+    talk_bidirectional(stub)
 
 
 if __name__ == '__main__':
