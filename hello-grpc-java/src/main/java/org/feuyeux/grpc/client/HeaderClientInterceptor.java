@@ -18,7 +18,7 @@ public class HeaderClientInterceptor implements ClientInterceptor {
                     String metadata = contextKeys.get(i).get();
                     if (metadata != null) {
                         Metadata.Key<String> key = tracingKeys.get(i);
-                        log.info("Context to metadata {}:{}", key, metadata);
+                        log.info("<-T {}:{}", key, metadata);
                         headers.put(key, metadata);
                     }
                 }
@@ -26,7 +26,7 @@ public class HeaderClientInterceptor implements ClientInterceptor {
                 super.start(new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(responseListener) {
                     @Override
                     public void onHeaders(Metadata headers) {
-                        log.info("header received from server:" + headers);
+                        log.info("<-H {}", headers);
                         super.onHeaders(headers);
                     }
                 }, headers);
