@@ -42,7 +42,12 @@ rustup update
 rustup target add x86_64-unknown-linux-musl
 rustup show
 
-# Error: Your CLT does not support macOS 11.2.
+# 1 error: linking with `cc` failed: exit code: 1
+# clang: error: linker command failed with exit code 1 (use -v to see invocation)
+# brew install FiloSottile/musl-cross/musl-cross
+# ln -s /usr/local/bin/x86_64-linux-musl-gcc /usr/local/bin/musl-gcc
+
+# 2 Error: Your CLT does not support macOS 11.2.
 # sudo rm -rf /Library/Developer/CommandLineTools
 # sudo xcode-select --install
 # https://download.developer.apple.com/Developer_Tools/Command_Line_Tools_for_Xcode_12.5_beta/Command_Line_Tools_for_Xcode_12.5_beta.dmg
@@ -58,15 +63,6 @@ rustup show
 # location: /
 # install-time: 1612700387
 # groups: com.apple.FindSystemFiles.pkg-group
-
-# code .cargo/config
-# [target.x86_64-unknown-linux-musl]
-# linker = "x86_64-linux-musl-gcc"
-
-# error: linking with `cc` failed: exit code: 1
-# clang: error: linker command failed with exit code 1 (use -v to see invocation)
-# brew install FiloSottile/musl-cross/musl-cross
-# ln -s /usr/local/bin/x86_64-linux-musl-gcc /usr/local/bin/musl-gcc
 
 CROSS_COMPILE=x86_64-linux-musl-gcc cargo build --release --bin proto-server --target=x86_64-unknown-linux-musl
 ```
