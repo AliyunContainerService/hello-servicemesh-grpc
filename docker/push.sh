@@ -5,6 +5,8 @@
 # java
 docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_server_java:1.0.0
 docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_client_java:1.0.0
+docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_with_api_server_java:1.0.0
+docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_with_api_client_java:1.0.0
 # go
 docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_server_go:1.0.0
 docker push registry.cn-beijing.aliyuncs.com/asm_repo/grpc_client_go:1.0.0

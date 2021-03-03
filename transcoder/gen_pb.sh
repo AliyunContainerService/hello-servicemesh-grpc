@@ -6,6 +6,7 @@ cd "$(
 
 cd ..
 proto_path="$(PWD)/proto"
+# https://github.com/googleapis/googleapis.git
 proto_dep_path="$(PWD)/hello-grpc-java/target/protoc-dependencies/3495bb91958122dbbfb579bead6834ec"
 cd ${script_path}
 

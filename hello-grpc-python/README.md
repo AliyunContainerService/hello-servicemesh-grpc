@@ -1,19 +1,19 @@
 ## grpc python demo
 ### Setup
-```sh
+```bash
 pip install grpcio-tools
 ```
 
 #### generate
-```sh
+```bash
 sh proto2py.sh
 ```
 
 #### test
-```sh
+```bash
 sh start_server.sh
 ```
 
-```sh
+```bash
 sh start_client.sh
 ```

@@ -1,10 +1,10 @@
 ## mesh
 
-```sh
+```bash
 sh apply.sh
 ```
 
 
-```sh
+```bash
 sh test.sh
 ```

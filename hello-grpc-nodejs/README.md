@@ -1,29 +1,29 @@
 ## grpc nodejs demo
 ###
-```sh
+```bash
 npm install -g grpc-tools
 ```
 
 ### Generate
-```sh
+```bash
 proto2js.sh
 ```
 
 ### Build
-```sh
+```bash
 npm install
 ```
 ### Run
-```sh
+```bash
 node proto_server.js
 ```
 
-```sh
+```bash
 node proto_client.js
 ```
 
 ### Diagnose
-```sh
+```bash
 # find
 lsof -i tcp:9996
 # kill

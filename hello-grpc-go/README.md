@@ -2,23 +2,23 @@
 
 ### Setup
 
-```sh
+```bash
 sh init.sh
 ```
 
 ### Generate
 
-```sh
+```bash
 sh proto2go.sh
 ```
 
 ### Run
 
-```sh
+```bash
 sh test_server.sh
 ```
 
-```sh
+```bash
 sh test_client.sh
 ```
 
