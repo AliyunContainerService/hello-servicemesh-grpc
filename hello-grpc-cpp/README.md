@@ -17,6 +17,7 @@ export PATH="$MY_INSTALL_DIR/bin:$PATH"
 
 ### Build and install gRPC, Protocol Buffers, and Abseil 
 ```bash
+# git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc
 cd grpc
 git submodule update --init
 mkdir -p cmake/build
