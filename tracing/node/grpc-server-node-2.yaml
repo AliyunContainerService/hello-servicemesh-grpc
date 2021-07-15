@@ -32,7 +32,7 @@ spec:
       serviceAccountName: grpc-tracing-sa
       containers:
         - name: grpc-server-deploy2
-          image: registry.cn-beijing.aliyuncs.com/asm_repo/grpc_server_node:1.0.0
+          image: feuyeux/grpc_server_node:1.0.0
           env:
             - name: GRPC_HELLO_BACKEND
               value: "grpc-server-svc3.grpc-tracing.svc.cluster.local"

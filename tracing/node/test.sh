@@ -14,7 +14,7 @@ INGRESS_IP=$(k -n istio-system get service istio-ingressgateway -o jsonpath='{.s
 
 docker stop $(docker ps -a -q) >/dev/null 2>&1
 docker rm $(docker ps -a -q) >/dev/null 2>&1
-docker run -d --name grpc_client_node -e GRPC_SERVER="${INGRESS_IP}" registry.cn-beijing.aliyuncs.com/asm_repo/grpc_client_node:1.0.0 /bin/sleep 3650d
+docker run -d --name grpc_client_node -e GRPC_SERVER="${INGRESS_IP}" feuyeux/grpc_client_node:1.0.0 /bin/sleep 3650d
 client_node_container=$(docker ps -q)
 
 # echo "Test from pod:"

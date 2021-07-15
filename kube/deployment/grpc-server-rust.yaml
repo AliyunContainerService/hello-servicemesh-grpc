@@ -21,7 +21,7 @@ spec:
       serviceAccountName: grpc-best-sa
       containers:
         - name: grpc-server-deploy
-          image: registry.cn-beijing.aliyuncs.com/asm_repo/grpc_server_rust:1.0.0
+          image: feuyeux/grpc_server_rust:1.0.0
           imagePullPolicy: Always
           ports:
             - containerPort: 9996

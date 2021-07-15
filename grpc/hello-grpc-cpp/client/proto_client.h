@@ -1,0 +1,14 @@
+//
+// Created by han on 2021/7/18.
+//
+
+#ifndef HELLO_SERVICEMESH_GRPC_PROTO_CLIENT_H
+#define HELLO_SERVICEMESH_GRPC_PROTO_CLIENT_H
+
+
+class proto_client {
+
+};
+
+
+#endif //HELLO_SERVICEMESH_GRPC_PROTO_CLIENT_H

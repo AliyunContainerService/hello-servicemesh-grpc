@@ -3,6 +3,13 @@
 ### GRPC Diagram
 ![](img/grpc_diagram.png)
 
+**client** [end of stream (EOS)]->[Length-Prefixed Message][]->[Headers] **server**
+
+**client** [Headers]<-[Length-Prefixed Message][]<-[Trailers] **server**
+
+
+
+
 ### Kube Topology
 ![](img/grpc_kube.png)
 
@@ -13,15 +20,16 @@
 ![](img/grpc_mesh_api_100.png)
 
 ### Proto3
-- [proto](proto)
+- [proto](grpc/proto)
 
 ### Service
-- [hello-grpc-java](hello-grpc-java)
-- [hello-grpc-go](hello-grpc-go)
-- [hello-grpc-nodejs](hello-grpc-nodejs)
-- [hell-grpc-python ](hell-grpc-python )
-- [hell-grpc-rust ](hell-grpc-rust )
-- [hell-grpc-cpp ](hell-grpc-cpp )
+- [1 hello-grpc-java](grpc/hello-grpc-java)
+- [2 hello-grpc-go](grpc/hello-grpc-go)
+- [3 hello-grpc-nodejs](grpc/hello-grpc-nodejs)
+- [4 hello-grpc-python](grpc/hello-grpc-python)
+- [5 hello-grpc-rust](grpc/hello-grpc-rust)
+- [6 hello-grpc-cpp](grpc/hello-grpc-cpp)
+- [docker](grpc/docker)
 
 ### Cross Access Test
 - [cross](cross)
@@ -30,7 +38,6 @@
 - [propagate](propagate)
 
 ### ServiceMesh
-- [docker](docker)
 - [kube](kube)
 - [mesh](mesh)
 - [tracing](tracing)
