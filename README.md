@@ -7,18 +7,6 @@
 
 **client** [Headers]<-[Length-Prefixed Message][]<-[Trailers] **server**
 
-
-
-
-### Kube Topology
-![](img/grpc_kube.png)
-
-### Mesh Management
-#### v1 100%
-![](img/grpc_mesh_v1_100.png)
-#### api 100%
-![](img/grpc_mesh_api_100.png)
-
 ### Proto3
 - [proto](grpc/proto)
 

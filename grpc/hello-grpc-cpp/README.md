@@ -61,23 +61,42 @@ make install
 popd
 ```
 
-## 2 Generate
+### 2 Generate
 ```bash
 mkdir common
 protoc --cpp_out=./common landing.proto
 protoc --grpc_out=./common --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin landing.proto
 ```
 
-## 3 Demo
+### 3 Demo
 ```bash
-$ cd examples/cpp/helloworld
-$ mkdir -p cmake/build
-$ pushd cmake/build
-$ cmake -DCMAKE_PREFIX_PATH=$MY_INSTALL_DIR ../..
-$ make -j
-$ ./greeter_server
+cd helloworld
+export MY_INSTALL_DIR=$HOME/.local
+export PATH="$MY_INSTALL_DIR/bin:$PATH"
+rm -rf build
+mkdir -p build
+pushd build
+cmake -DCMAKE_PREFIX_PATH=$MY_INSTALL_DIR ..
+make -j
+```
+```bash
+./greeter_server
 ```
 
 ```bash
-$ ./greeter_client
+./greeter_client
 ```
+```bash
+./greeter_async_server
+```
+```bash
+./greeter_async_client2
+```
+```bash
+./greeter_async_client2
+```
+
+```bash
+popd
+```
+
