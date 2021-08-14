@@ -61,42 +61,47 @@ make install
 popd
 ```
 
-### 2 Generate
-```bash
-mkdir common
-protoc --cpp_out=./common landing.proto
-protoc --grpc_out=./common --plugin=protoc-gen-grpc=/usr/local/bin/grpc_cpp_plugin landing.proto
+### 2 Build
+
+#### cmake config
+
+set `$MY_INSTALL_DIR` for `CMAKE_PREFIX_PATH`
+
+```cmake
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/Users/han/.local")
 ```
 
-### 3 Demo
+#### cmake & make
+
 ```bash
-cd helloworld
-export MY_INSTALL_DIR=$HOME/.local
-export PATH="$MY_INSTALL_DIR/bin:$PATH"
-rm -rf build
-mkdir -p build
+echo "cmake"
+rm -rf build common/*.cc common/*.h
+mkdir build
 pushd build
-cmake -DCMAKE_PREFIX_PATH=$MY_INSTALL_DIR ..
+cmake ..
+echo "make"
 make -j
-```
-```bash
-./greeter_server
-```
-
-```bash
-./greeter_client
-```
-```bash
-./greeter_async_server
-```
-```bash
-./greeter_async_client2
-```
-```bash
-./greeter_async_client2
-```
-
-```bash
 popd
 ```
 
+### 3 Run
+```bash
+./build/proto_server
+```
+
+```bash
+./build/proto_client
+```
+
+
+```bash
+./greeter_async_server
+```
+
+```bash
+./greeter_async_client
+```
+
+```bash
+./greeter_async_client2
+```

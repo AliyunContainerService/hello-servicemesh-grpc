@@ -29,3 +29,4 @@ go.sum
 *.pb.cc
 *.pb.h
 build
+cmake-build-debug
