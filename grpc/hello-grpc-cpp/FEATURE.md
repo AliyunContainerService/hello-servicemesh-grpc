@@ -1,4 +1,10 @@
 - [ ] 4 GRPC MODELS
+    - [] Env
+    - [] Array
+    - [] Random
+    - [] Timestamp
+    - [] UUID
+    - [] Sleep
 - [ ] LOG
 - [ ] SEND/RECEIVE HEADERS
 - [ ] DOCKER IMAGE
