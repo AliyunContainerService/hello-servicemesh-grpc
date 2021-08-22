@@ -1,2 +1,1 @@
-#./build/proto_client
-./build/greeter_async_client
+./build/proto_client

@@ -8,6 +8,7 @@
 
 #include "helloworld.grpc.pb.h"
 #include "landing.grpc.pb.h"
+#include <glog/logging.h>
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -35,7 +36,7 @@ class GreeterServiceImpl final : public Greeter::Service {
 
 class LandingServiceImpl final : public LandingService::Service {
     Status Talk(ServerContext *context, const TalkRequest *request, TalkResponse *response) override {
-        std::cout << "Talk received: " << request->data() << std::endl;
+        LOG(INFO) << "Talk received, data: " << request->data()<<", meta: " << request->meta();
         response->set_status(200);
         TalkResult* talkResult;
         talkResult=response->add_results();
@@ -60,6 +61,7 @@ class LandingServiceImpl final : public LandingService::Service {
 };
 
 void RunServer() {
+    LOG(INFO) << "Hello gRPC C++ Server is starting...";
     std::string server_address("0.0.0.0:50051");
 
     grpc::EnableDefaultHealthCheckService(true);
@@ -74,12 +76,17 @@ void RunServer() {
     builder.RegisterService(&landingService);
 
     std::unique_ptr<Server> server(builder.BuildAndStart());
-    std::cout << "Server listening on " << server_address << std::endl;
+    LOG(INFO) << "Server listening on " << server_address;
     server->Wait();
 }
 
 int main(int argc, char **argv) {
+    google::InitGoogleLogging(argv[0]);
+    google::SetLogDestination(google::INFO, "/Users/han/hello_grpc/");
+    FLAGS_colorlogtostderr=true;
+    FLAGS_alsologtostderr = 1;
     RunServer();
-
+    LOG(WARNING) << "Hello gRPC C++ Server is stopping";
+    google::ShutdownGoogleLogging();
     return 0;
 }

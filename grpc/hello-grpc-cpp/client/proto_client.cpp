@@ -5,6 +5,7 @@
 #include <grpcpp/grpcpp.h>
 #include "helloworld.grpc.pb.h"
 #include "landing.grpc.pb.h"
+#include <glog/logging.h>
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -20,18 +21,16 @@ using org::feuyeux::grpc::ResultType;
 
 class LandingClient {
 public:
-    LandingClient(std::shared_ptr<Channel> channel) : client(LandingService::NewStub(channel)) {}
+    LandingClient(std::shared_ptr<Channel> channel) : stub_(LandingService::NewStub(channel)) {}
 
     void Talk() {
         TalkRequest talkRequest;
-        std::string data("hello");
-        std::string meta("c++");
-        talkRequest.set_data(data);
-        talkRequest.set_meta(meta);
+        talkRequest.set_data("hello");
+        talkRequest.set_meta("c++");
 
-        ClientContext context;
         TalkResponse talkResponse;
-        Status status = client->Talk(&context, talkRequest, &talkResponse);
+        ClientContext context;
+        Status status = stub_->Talk(&context, talkRequest, &talkResponse);
         if (status.ok()) {
             std::cout << "Talk status:" << talkResponse.status() << std::endl;
             const TalkResult &talkResult = talkResponse.results(0);
@@ -44,7 +43,7 @@ public:
     }
 
 private:
-    std::unique_ptr<LandingService::Stub> client;
+    std::unique_ptr<LandingService::Stub> stub_;
 };
 
 class GreeterClient {
@@ -83,6 +82,14 @@ private:
 };
 
 int main(int argc, char **argv) {
+    /*日志文件名 <program name>.<host name>.<user name>.log.<Severity level>.<date>-<time>.<pid> */
+    google::InitGoogleLogging(argv[0]);
+    google::SetLogDestination(google::INFO, "/Users/han/hello_grpc/");
+    FLAGS_colorlogtostderr=true;
+    FLAGS_alsologtostderr = 1;
+
+    LOG(INFO) << "Hello gRPC C++ Client is starting...";
+
     // Instantiate the client. It requires a channel, out of which the actual RPCs
     // are created. This channel models a connection to an endpoint specified by
     // the argument "--target=" which is the only expected argument.
@@ -110,11 +117,15 @@ int main(int argc, char **argv) {
         target_str = "localhost:50051";
     }
     const std::shared_ptr<Channel> &channel = grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials());
+    //
     GreeterClient greeter(channel);
     std::string user("world");
     std::string reply = greeter.SayHello(user);
     std::cout << "Greeter received: " << reply << std::endl;
+    //
     LandingClient landingClient(channel);
     landingClient.Talk();
+    LOG(WARNING) << "Hello gRPC C++ Client is stopping";
+    google::ShutdownGoogleLogging();
     return 0;
 }
