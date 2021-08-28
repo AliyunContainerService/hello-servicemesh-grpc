@@ -25,16 +25,12 @@ using org::feuyeux::grpc::ResultType;
 using grpc::ServerWriter;
 using grpc::ServerReader;
 using grpc::ServerReaderWriter;
-
-class GreeterServiceImpl final : public Greeter::Service {
-    Status SayHello(ServerContext *context, const HelloRequest *request, HelloReply *reply) override {
-        std::string prefix("Hello ");
-        reply->set_message(prefix + request->name());
-        return Status::OK;
-    }
-};
+using std::string;
+using google::protobuf::Map;
 
 class LandingServiceImpl final : public LandingService::Service {
+    std::vector<string> HELLO_LIST{"Hello", "Bonjour", "Hola", "こんにちは", "Ciao","안녕하세요"};
+
     Status Talk(ServerContext *context, const TalkRequest *request, TalkResponse *response) override {
         LOG(INFO) << "Talk received, data: " << request->data()<<", meta: " << request->meta();
         response->set_status(200);
@@ -47,6 +43,17 @@ class LandingServiceImpl final : public LandingService::Service {
 
     Status
     TalkOneAnswerMore(ServerContext *context, const TalkRequest *request, ServerWriter<TalkResponse> *writer) override {
+        for (const string& hello : HELLO_LIST) {
+            TalkResponse response;
+            response.set_status(200);
+            TalkResult *talkResult;
+            talkResult=response.add_results();
+            talkResult->set_id(1);
+            talkResult->set_type(ResultType::OK);
+            Map<string, string> *pMap = talkResult->mutable_kv();
+            (*pMap)["data"]=hello;
+            writer->Write(response);
+        }
         return Status::OK;
     }
 
@@ -60,17 +67,15 @@ class LandingServiceImpl final : public LandingService::Service {
     }
 };
 
+
 void RunServer() {
     LOG(INFO) << "Hello gRPC C++ Server is starting...";
-    std::string server_address("0.0.0.0:50051");
+    std::string server_address("0.0.0.0:9996");
 
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-
-    GreeterServiceImpl service;
-    builder.RegisterService(&service);
 
     LandingServiceImpl landingService;
     builder.RegisterService(&landingService);

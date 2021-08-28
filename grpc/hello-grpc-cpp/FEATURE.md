@@ -5,7 +5,7 @@
     - [] Timestamp
     - [] UUID
     - [] Sleep
-- [ ] LOG
+- [X] LOG
 - [ ] SEND/RECEIVE HEADERS
 - [ ] DOCKER IMAGE
 - [ ] CROSS ACCESS

@@ -41,7 +41,7 @@ using helloworld::HelloRequest;
 class GreeterClient {
  public:
   explicit GreeterClient(std::shared_ptr<Channel> channel)
-      : stub_(Greeter::NewStub(channel)) {}
+      : client(Greeter::NewStub(channel)) {}
 
   // Assembles the client's payload, sends it and presents the response back
   // from the server.
@@ -64,12 +64,12 @@ class GreeterClient {
     // Storage for the status of the RPC upon completion.
     Status status;
 
-    // stub_->PrepareAsyncSayHello() creates an RPC object, returning
+    // client->PrepareAsyncSayHello() creates an RPC object, returning
     // an instance to store in "call" but does not actually start the RPC
     // Because we are using the asynchronous API, we need to hold on to
     // the "call" instance in order to get updates on the ongoing RPC.
     std::unique_ptr<ClientAsyncResponseReader<HelloReply> > rpc(
-        stub_->PrepareAsyncSayHello(&context, request, &cq));
+            client->PrepareAsyncSayHello(&context, request, &cq));
 
     // StartCall initiates the RPC call
     rpc->StartCall();
@@ -103,7 +103,7 @@ class GreeterClient {
  private:
   // Out of the passed in Channel comes the stub, stored here, our view of the
   // server's exposed services.
-  std::unique_ptr<Greeter::Stub> stub_;
+  std::unique_ptr<Greeter::Stub> client;
 };
 
 int main(int argc, char** argv) {
