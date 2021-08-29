@@ -9,6 +9,7 @@
 #include "helloworld.grpc.pb.h"
 #include "landing.grpc.pb.h"
 #include <glog/logging.h>
+#include <regex>
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -29,13 +30,13 @@ using std::string;
 using google::protobuf::Map;
 
 class LandingServiceImpl final : public LandingService::Service {
-    std::vector<string> HELLO_LIST{"Hello", "Bonjour", "Hola", "こんにちは", "Ciao","안녕하세요"};
+    std::vector<string> HELLO_LIST{"Hello", "Bonjour", "Hola", "こんにちは", "Ciao", "안녕하세요"};
 
     Status Talk(ServerContext *context, const TalkRequest *request, TalkResponse *response) override {
-        LOG(INFO) << "Talk received, data: " << request->data()<<", meta: " << request->meta();
+        LOG(INFO) << "Talk received, data: " << request->data() << ", meta: " << request->meta();
         response->set_status(200);
-        TalkResult* talkResult;
-        talkResult=response->add_results();
+        TalkResult *talkResult;
+        talkResult = response->add_results();
         talkResult->set_id(1);
         talkResult->set_type(ResultType::OK);
         return Status::OK;
@@ -43,15 +44,22 @@ class LandingServiceImpl final : public LandingService::Service {
 
     Status
     TalkOneAnswerMore(ServerContext *context, const TalkRequest *request, ServerWriter<TalkResponse> *writer) override {
-        for (const string& hello : HELLO_LIST) {
+        const string &data = request->data();
+        std::regex ws_re(",");
+        std::vector<std::string> ids(std::sregex_token_iterator(
+                                             data.begin(), data.end(), ws_re, -1
+                                     ),
+                                     std::sregex_token_iterator());
+        for (const string &id: ids) {
             TalkResponse response;
             response.set_status(200);
             TalkResult *talkResult;
-            talkResult=response.add_results();
+            talkResult = response.add_results();
             talkResult->set_id(1);
             talkResult->set_type(ResultType::OK);
             Map<string, string> *pMap = talkResult->mutable_kv();
-            (*pMap)["data"]=hello;
+            int index = stoi(id);
+            (*pMap)["data"] = HELLO_LIST[index];
             writer->Write(response);
         }
         return Status::OK;
@@ -88,7 +96,7 @@ void RunServer() {
 int main(int argc, char **argv) {
     google::InitGoogleLogging(argv[0]);
     google::SetLogDestination(google::INFO, "/Users/han/hello_grpc/");
-    FLAGS_colorlogtostderr=true;
+    FLAGS_colorlogtostderr = true;
     FLAGS_alsologtostderr = 1;
     RunServer();
     LOG(WARNING) << "Hello gRPC C++ Server is stopping";
