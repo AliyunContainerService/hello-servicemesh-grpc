@@ -1,10 +1,10 @@
-rootProject.name = "hello-grpc-kotlin"
+rootProject.name = "grpc-kotlin-examples"
 
 // when running the assemble task, ignore the android & graalvm related subprojects
 if (startParameter.taskRequests.find { it.args.contains("assemble") } == null) {
-    include("proto", "client", "server")
+    include("protos", "stub", "stub-lite", "client", "native-client", "server", "stub-android", "android")
 } else {
-    include("proto", "server")
+    include("protos", "stub", "server")
 }
 
 pluginManagement {
