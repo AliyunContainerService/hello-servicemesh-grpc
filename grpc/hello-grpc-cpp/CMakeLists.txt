@@ -20,6 +20,8 @@ set(landing_proto_srcs "${PB_PATH}/landing.pb.cc")
 set(landing_proto_hdrs "${PB_PATH}/landing.pb.h")
 set(landing_grpc_srcs "${PB_PATH}/landing.grpc.pb.cc")
 set(landing_grpc_hdrs "${PB_PATH}/landing.grpc.pb.h")
+set(landing_grpc_utils_head "${CMAKE_CURRENT_SOURCE_DIR}/client/utils.h")
+set(landing_grpc_utils_src "${CMAKE_CURRENT_SOURCE_DIR}/client/utils.cpp")
 
 add_custom_command(
         OUTPUT "${hello_proto_srcs}" "${hello_proto_hdrs}" "${hello_grpc_srcs}" "${hello_grpc_hdrs}"
@@ -45,7 +47,7 @@ add_custom_command(
 include_directories("${PB_PATH}")
 # hello_grpc_proto
 add_library(hello_grpc_proto ${hello_grpc_srcs} ${hello_grpc_hdrs} ${hello_proto_srcs} ${hello_proto_hdrs})
-add_library(landing_grpc_proto ${landing_grpc_srcs} ${landing_grpc_hdrs} ${landing_proto_srcs} ${landing_proto_hdrs})
+add_library(landing_grpc_proto ${landing_grpc_srcs} ${landing_grpc_hdrs} ${landing_proto_srcs} ${landing_proto_hdrs} ${landing_grpc_utils_src}  ${landing_grpc_utils_head})
 target_link_libraries(hello_grpc_proto ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF})
 target_link_libraries(landing_grpc_proto ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF})
 
@@ -61,8 +63,8 @@ add_executable(greeter_async_server "server/greeter_async_server.cc")
 find_package (glog 0.6.0 REQUIRED)
 
 #https://cmake.org/cmake/help/latest/command/target_link_libraries.html
+target_link_libraries(proto_server hello_grpc_proto landing_grpc_proto ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} glog::glog)
 target_link_libraries(proto_client hello_grpc_proto landing_grpc_proto ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} glog::glog)
 target_link_libraries(greeter_async_client hello_grpc_proto ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} glog::glog)
 target_link_libraries(greeter_async_client2 hello_grpc_proto ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} glog::glog)
-target_link_libraries(proto_server hello_grpc_proto landing_grpc_proto ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} glog::glog)
 target_link_libraries(greeter_async_server hello_grpc_proto ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} glog::glog)

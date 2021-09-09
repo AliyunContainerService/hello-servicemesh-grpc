@@ -4,12 +4,15 @@ cd "$(
   pwd -P
 )/" || exit
 #
-echo "cmake"
+echo "1. dependencies:"
+import_glog.sh
+import_uuid.sh
+echo "2. cmake:"
 rm -rf build common/*.cc common/*.h
 mkdir build
 pushd build
 cmake ..
-echo "===="
-echo "make"
+echo
+echo "3. make:"
 make -j
 popd

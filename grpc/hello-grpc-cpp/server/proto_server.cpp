@@ -8,6 +8,7 @@
 
 #include "helloworld.grpc.pb.h"
 #include "landing.grpc.pb.h"
+#include "../client/utils.h"
 #include <glog/logging.h>
 #include <regex>
 
@@ -28,23 +29,26 @@ using grpc::ServerReader;
 using grpc::ServerReaderWriter;
 using std::string;
 using google::protobuf::Map;
+using hello::Utils;
 
 class LandingServiceImpl final : public LandingService::Service {
+public:
     std::vector<string> HELLO_LIST{"Hello", "Bonjour", "Hola", "こんにちは", "Ciao", "안녕하세요"};
 
     Status Talk(ServerContext *context, const TalkRequest *request, TalkResponse *response) override {
-        LOG(INFO) << "Talk received, data: " << request->data() << ", meta: " << request->meta();
+        const string &id = request->data();
+        LOG(INFO) << "TALK REQUEST: data=" << id << ", meta=" << request->meta();
         response->set_status(200);
         TalkResult *talkResult;
         talkResult = response->add_results();
-        talkResult->set_id(1);
-        talkResult->set_type(ResultType::OK);
+        buildResult(id, talkResult);
         return Status::OK;
     }
 
     Status
     TalkOneAnswerMore(ServerContext *context, const TalkRequest *request, ServerWriter<TalkResponse> *writer) override {
         const string &data = request->data();
+        LOG(INFO) << "TalkOneAnswerMore REQUEST: data=" << data << ", meta=" << request->meta();
         std::regex ws_re(",");
         std::vector<std::string> ids(std::sregex_token_iterator(
                                              data.begin(), data.end(), ws_re, -1
@@ -55,11 +59,7 @@ class LandingServiceImpl final : public LandingService::Service {
             response.set_status(200);
             TalkResult *talkResult;
             talkResult = response.add_results();
-            talkResult->set_id(1);
-            talkResult->set_type(ResultType::OK);
-            Map<string, string> *pMap = talkResult->mutable_kv();
-            int index = stoi(id);
-            (*pMap)["data"] = HELLO_LIST[index];
+            buildResult(id, talkResult);
             writer->Write(response);
         }
         return Status::OK;
@@ -67,11 +67,42 @@ class LandingServiceImpl final : public LandingService::Service {
 
     Status
     TalkMoreAnswerOne(ServerContext *context, ServerReader<TalkRequest> *reader, TalkResponse *response) override {
+        TalkRequest request;
+        while (reader->Read(&request)) {
+            const string &id = request.data();
+            LOG(INFO) << "TalkMoreAnswerOne REQUEST: data=" << id << ", meta=" << request.meta();
+            response->set_status(200);
+            TalkResult *talkResult;
+            talkResult = response->add_results();
+            buildResult(id, talkResult);
+        }
         return Status::OK;
     }
 
     Status TalkBidirectional(ServerContext *context, ServerReaderWriter<TalkResponse, TalkRequest> *stream) override {
+        TalkRequest request;
+        while (stream->Read(&request)) {
+            const string &id = request.data();
+            LOG(INFO) << "TalkBidirectional REQUEST: data=" << id << ", meta=" << request.meta();
+            TalkResponse response;
+            response.set_status(200);
+            TalkResult *talkResult;
+            talkResult = response.add_results();
+            buildResult(id, talkResult);
+            stream->Write(response);
+        }
         return Status::OK;
+    }
+
+    void buildResult(const string id, TalkResult *talkResult) {
+        talkResult->set_id(Utils::Now());
+        talkResult->set_type(ResultType::OK);
+        google::protobuf::Map<string, string> *pMap = talkResult->mutable_kv();
+        int index = stoi(id);
+        (*pMap)["id"] = "UUID-TODO";
+        (*pMap)["idx"] = id;
+        (*pMap)["meta"] = "c++";
+        (*pMap)["data"] = HELLO_LIST[index];
     }
 };
 
