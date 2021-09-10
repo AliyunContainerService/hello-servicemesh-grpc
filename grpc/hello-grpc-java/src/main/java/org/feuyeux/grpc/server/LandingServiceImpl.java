@@ -72,29 +72,30 @@ public class LandingServiceImpl extends LandingServiceGrpc.LandingServiceImplBas
   public StreamObserver<TalkRequest> talkMoreAnswerOne(
       StreamObserver<TalkResponse> responseObserver) {
     if (asyncStub == null) {
-      return new StreamObserver<TalkRequest>() {
-        final List<TalkRequest> talkRequests = new ArrayList<>();
+      return new StreamObserver<>() {
+        final List<TalkResult> talkResults = new ArrayList<>();
 
         @Override
         public void onNext(TalkRequest request) {
           log.info("TalkMoreAnswerOne REQUEST: data={},meta={}", request.getData(),
               request.getMeta());
-          talkRequests.add(request);
+          talkResults.add(buildResult(request.getData()));
         }
 
         @Override
         public void onError(Throwable t) {
-          log.error("talkBidirectional onError");
+          log.error("TalkMoreAnswerOne onError");
         }
 
         @Override
         public void onCompleted() {
-          responseObserver.onNext(buildResponse(talkRequests));
+          responseObserver.onNext(
+              TalkResponse.newBuilder().setStatus(200).addAllResults(talkResults).build());
           responseObserver.onCompleted();
         }
       };
     } else {
-      StreamObserver<TalkResponse> nextObserver = new StreamObserver<TalkResponse>() {
+      StreamObserver<TalkResponse> nextObserver = new StreamObserver<>() {
         @Override
         public void onNext(TalkResponse talkResponse) {
           responseObserver.onNext(talkResponse);
@@ -110,8 +111,7 @@ public class LandingServiceImpl extends LandingServiceGrpc.LandingServiceImplBas
           responseObserver.onCompleted();
         }
       };
-
-      return new StreamObserver<TalkRequest>() {
+      return new StreamObserver<>() {
         final StreamObserver<TalkRequest> requestObserver = asyncStub.talkMoreAnswerOne(
             nextObserver);
 
@@ -124,7 +124,7 @@ public class LandingServiceImpl extends LandingServiceGrpc.LandingServiceImplBas
 
         @Override
         public void onError(Throwable t) {
-          log.error("talkBidirectional onError");
+          log.error("TalkMoreAnswerOne onError");
         }
 
         @Override
@@ -139,7 +139,7 @@ public class LandingServiceImpl extends LandingServiceGrpc.LandingServiceImplBas
   public StreamObserver<TalkRequest> talkBidirectional(
       StreamObserver<TalkResponse> responseObserver) {
     if (asyncStub == null) {
-      return new StreamObserver<TalkRequest>() {
+      return new StreamObserver<>() {
         @Override
         public void onNext(TalkRequest request) {
           log.info("TalkBidirectional REQUEST: data={},meta={}", request.getData(),
@@ -151,7 +151,7 @@ public class LandingServiceImpl extends LandingServiceGrpc.LandingServiceImplBas
 
         @Override
         public void onError(Throwable t) {
-          log.error("talkBidirectional onError");
+          log.error("TalkBidirectional onError");
         }
 
         @Override
@@ -189,7 +189,7 @@ public class LandingServiceImpl extends LandingServiceGrpc.LandingServiceImplBas
 
         @Override
         public void onError(Throwable t) {
-          log.error("talkBidirectional onError", t);
+          log.error("TalkBidirectional onError", t);
         }
 
         @Override
@@ -223,12 +223,5 @@ public class LandingServiceImpl extends LandingServiceGrpc.LandingServiceImplBas
         .setType(ResultType.OK)
         .putAllKv(kv)
         .build();
-  }
-
-  private TalkResponse buildResponse(List<TalkRequest> talkRequests) {
-    TalkResponse.Builder response = TalkResponse.newBuilder();
-    response.setStatus(200);
-    talkRequests.forEach(request -> response.addResults(buildResult(request.getData())));
-    return response.build();
   }
 }

@@ -1,7 +1,6 @@
 package org.feuyeux.grpc.server;
 
 import io.grpc.Attributes;
-import io.grpc.Attributes.Key;
 import io.grpc.Channel;
 import io.grpc.ClientInterceptors;
 import io.grpc.ManagedChannel;
@@ -16,7 +15,6 @@ import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContextBuilder;
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +65,7 @@ public class ProtoServer {
           .addService(intercept)
           .addTransportFilter(new ServerTransportFilter() {
             public void transportTerminated(Attributes transportAttrs) {
-                log.warn("GRPC Client {} terminated", transportAttrs.toString());
+              log.warn("GRPC Client {} terminated", transportAttrs.toString());
             }
           })
           .build();

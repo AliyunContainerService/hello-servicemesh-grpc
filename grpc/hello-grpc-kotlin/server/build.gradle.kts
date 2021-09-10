@@ -8,19 +8,19 @@ dependencies {
     runtimeOnly("io.grpc:grpc-netty:${rootProject.ext["grpcVersion"]}")
 }
 
-tasks.register<JavaExec>("RouteGuideServer") {
+tasks.register<JavaExec>("ProtoServer") {
     dependsOn("classes")
     classpath = sourceSets["main"].runtimeClasspath
-    main = "io.grpc.examples.routeguide.RouteGuideServerKt"
+    main = "org.feuyeux.grpc.ProtoServerKt"
 }
 
-val routeGuideServerStartScripts = tasks.register<CreateStartScripts>("routeGuideServerStartScripts") {
-    mainClassName = "io.grpc.examples.routeguide.RouteGuideServerKt"
-    applicationName = "route-guide-server"
+val protoServerStartScripts = tasks.register<CreateStartScripts>("protoServerStartScripts") {
+    mainClass.value("org.feuyeux.grpc.ProtoServerKt")
+    applicationName = "proto-server"
     outputDir = tasks.named<CreateStartScripts>("startScripts").get().outputDir
     classpath = tasks.named<CreateStartScripts>("startScripts").get().classpath
 }
 
 tasks.named("startScripts") {
-    dependsOn(routeGuideServerStartScripts)
+    dependsOn(protoServerStartScripts)
 }

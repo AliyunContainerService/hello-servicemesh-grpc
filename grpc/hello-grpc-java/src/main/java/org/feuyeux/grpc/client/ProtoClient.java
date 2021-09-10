@@ -104,7 +104,7 @@ public class ProtoClient {
 
   public void talkMoreAnswerOne(List<TalkRequest> requests) throws InterruptedException {
     final CountDownLatch finishLatch = new CountDownLatch(1);
-    StreamObserver<TalkResponse> responseObserver = new StreamObserver<TalkResponse>() {
+    StreamObserver<TalkResponse> responseObserver = new StreamObserver<>() {
       @Override
       public void onNext(TalkResponse talkResponse) {
         printResponse(talkResponse);
@@ -121,6 +121,7 @@ public class ProtoClient {
         finishLatch.countDown();
       }
     };
+
     final StreamObserver<TalkRequest> requestObserver = asyncStub.talkMoreAnswerOne(
         responseObserver);
     try {
