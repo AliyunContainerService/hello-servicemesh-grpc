@@ -1,23 +1,30 @@
 ## hello-servicemesh-grpc
 
-### GRPC Diagram
+### Hello gRPC Diagram
 ![](img/grpc_diagram.png)
 
-**client** [end of stream (EOS)]->[Length-Prefixed Message][]->[Headers] **server**
+client [end of stream (EOS)]->[Length-Prefixed Message][]->[Headers] server
 
-**client** [Headers]<-[Length-Prefixed Message][]<-[Trailers] **server**
+client [Headers]<-[Length-Prefixed Message][]<-[Trailers] server
 
 ### Proto3
 - [proto](grpc/proto)
 
-### Service
-- [1 hello-grpc-java](grpc/hello-grpc-java)
-- [2 hello-grpc-go](grpc/hello-grpc-go)
-- [3 hello-grpc-nodejs](grpc/hello-grpc-nodejs)
-- [4 hello-grpc-python](grpc/hello-grpc-python)
-- [5 hello-grpc-rust](grpc/hello-grpc-rust)
-- [6 hello-grpc-cpp](grpc/hello-grpc-cpp)
-- [docker](grpc/docker)
+### Service Features
+
+| | | [java](grpc/hello-grpc-java) | [go](grpc/hello-grpc-go) | [nodejs](grpc/hello-grpc-) | [python](grpc/hello-grpc-python) | [rust](grpc/hello-grpc-rust) | [c++](grpc/hello-grpc-cpp) | [kotlin](grpc/hello-grpc-kotlin) | [c#](grpc/hello-grpc-csharp) |
+| ------ | ------ | -------- | ---- | ------ | ------ | ---- | ---- | ------ | ------ |
+| 4 MODELS | Array | :apple: | :apple: | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: |
+| | Sleep | :apple: | :apple: | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: |
+| | Random | :apple: | :apple: | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: |
+| | Timestamp | :apple: | :apple: | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: |
+| | UUID | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: | :apple: | :green_apple: |
+| | Env | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: | :green_apple: | :green_apple: |
+| Header | | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: | :green_apple: | :green_apple: |
+| TLS | | :apple: | :apple: | :apple: | :apple: | :green_apple: | :green_apple: | :green_apple: | :green_apple: |
+| Log | | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: | :green_apple: | :green_apple: |
+| Proxy | | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: | :green_apple: | :green_apple: |
+| Docker | | :apple: | :apple: | :apple: | :apple: | :apple: | :green_apple: | :green_apple: | :green_apple: |
 
 ### Cross Access Test
 - [cross](cross)

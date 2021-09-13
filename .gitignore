@@ -33,3 +33,7 @@ cmake-build-debug
 .gradle
 gradle
 generated
+obj
+packages
+*.suo
+*.userprefs
