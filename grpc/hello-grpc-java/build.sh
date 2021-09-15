@@ -5,7 +5,7 @@ SCRIPT_PATH="$(
   pwd -P
 )"
 cd "$SCRIPT_PATH" || exit
-export JAVA_HOME=$JAVA_16_HOME
+export JAVA_HOME=${JAVA_17_HOME}
 rm -rf src/main/proto
 mkdir src/main/proto
 cd ..

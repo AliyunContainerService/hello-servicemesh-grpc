@@ -6,8 +6,10 @@ cd "$(
   pwd -P
 )/" || exit
 
-export JAVA_HOME=$JAVA_16_HOME
-
+export JAVA_HOME=${JAVA_17_HOME}
+echo "JAVA_HOME=${JAVA_HOME}"
+mvn -v
+echo
 echo "~~~ build grpc server java ~~~"
 cd ../hello-grpc-java
 mvn clean install -DskipTests -f server_pom

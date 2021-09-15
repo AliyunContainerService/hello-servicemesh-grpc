@@ -11,6 +11,10 @@
     <lombok.version>1.18.20</lombok.version>
     <grpc.version>1.40.1</grpc.version>
     <protoc.version>3.17.3</protoc.version>
+    <netty.version>2.0.41.Final</netty.version>
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+    <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
+    <junit.version>4.13.2</junit.version>
   </properties>
   <dependencies>
     <!-- grpc -->
@@ -39,7 +43,7 @@
       <artifactId>netty-tcnative-boringssl-static</artifactId>
       <groupId>io.netty</groupId>
       <scope>runtime</scope>
-      <version>2.0.40.Final</version>
+      <version>${netty.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.annotation</groupId>
@@ -71,7 +75,7 @@
       <artifactId>junit</artifactId>
       <groupId>junit</groupId>
       <scope>test</scope>
-      <version>4.12</version>
+      <version>${junit.version}</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.github.stefanbirkner/system-rules -->
     <dependency>
@@ -92,17 +96,19 @@
     <finalName>${project.name}</finalName>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <encoding>UTF-8</encoding>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
+          <release>${jdk.version}</release>
+          <compilerArgs>--enable-preview</compilerArgs>
         </configuration>
-        <groupId>org.apache.maven.plugins</groupId>
-        <version>3.8.1</version>
       </plugin>
       <plugin>
+        <groupId>org.xolstice.maven.plugins</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
+        <version>${protobuf-maven-plugin.version}</version>
         <configuration>
           <clearOutputDirectory>false</clearOutputDirectory>
           <!--<outputDirectory>${project.build.sourceDirectory}</outputDirectory>-->
@@ -121,8 +127,6 @@
             </goals>
           </execution>
         </executions>
-        <groupId>org.xolstice.maven.plugins</groupId>
-        <version>0.6.1</version>
       </plugin>
     </plugins>
   </build>

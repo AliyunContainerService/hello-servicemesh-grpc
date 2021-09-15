@@ -5,7 +5,7 @@ SCRIPT_PATH="$(
   pwd -P
 )"
 cd "$SCRIPT_PATH" || exit
-export JAVA_HOME=$JAVA_16_HOME
+export JAVA_HOME=${JAVA_17_HOME}
 mvn clean install -DskipTests -f server_pom
 export GRPC_HELLO_SECURE=Y
 java -jar target/hello-grpc-java-server.jar
