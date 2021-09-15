@@ -7,7 +7,7 @@
   <artifactId>hello-grpc-java</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <properties>
-    <jdk.version>16</jdk.version>
+    <jdk.version>17</jdk.version>
     <lombok.version>1.18.20</lombok.version>
     <grpc.version>1.40.1</grpc.version>
     <protoc.version>3.17.3</protoc.version>
